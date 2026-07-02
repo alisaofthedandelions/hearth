@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F5F2EA">
+<title>Hearth — our homeschool days</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-512.png">
+<style>
+:root{
+  --paper:#F5F2EA; --paper2:#FBF9F3; --ink:#332F27; --ink2:#6E675A;
+  --line:#E4DECD; --moss:#67754C; --moss-soft:#EDF0E4;
+  --honey:#B98A2E; --honey-soft:#F6EEDC;
+  --dusk:#5E7286; --dusk-soft:#E7ECF1;
+  --stone:#9A948A; --stone-soft:#EFECE4;
+  --berry:#8A5A63;
+  --serif:Georgia,'Iowan Old Style','Times New Roman',serif;
+  --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;-webkit-tap-highlight-color:transparent}
+#app{max-width:560px;margin:0 auto;padding:0 16px 96px}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--moss);outline-offset:2px;border-radius:4px}
+input,textarea,select{font-family:var(--sans);font-size:16px;color:var(--ink)}
+
+/* top bar */
+#topbar{display:flex;align-items:baseline;justify-content:space-between;padding:18px 2px 6px}
+.brand{font-family:var(--serif);font-size:20px;letter-spacing:.04em}
+.quiet{color:var(--ink2);font-size:13px}
+.quietbtn{color:var(--ink2);font-size:13px;padding:6px 8px;border-radius:8px}
+.quietbtn:active{background:var(--stone-soft)}
+
+/* headings */
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink2);margin:14px 0 2px}
+h1.date{font-family:var(--serif);font-weight:normal;font-size:28px;margin:0 0 2px;line-height:1.2}
+.squig{display:block;width:120px;height:8px;margin:2px 0 14px}
+h2.sect{font-family:var(--serif);font-weight:normal;font-size:19px;margin:22px 0 8px}
+.sub{color:var(--ink2);font-size:13px;margin:-4px 0 10px}
+
+/* cards */
+.card{display:flex;align-items:center;gap:10px;background:var(--paper2);border:1px solid var(--line);border-radius:14px;padding:12px 12px;margin:8px 0;width:100%;text-align:left}
+.card:active{background:#F3EFE3}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--stone)}
+.card .t{flex:1;min-width:0;line-height:1.3}
+.card .t small{display:block;color:var(--ink2);font-size:12px;margin-top:1px}
+.chip{flex:none;font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink2);background:transparent}
+.chip.Done{background:var(--moss-soft);border-color:var(--moss);color:var(--moss)}
+.chip.Partial{background:var(--honey-soft);border-color:var(--honey);color:var(--honey)}
+.chip.Moved{background:var(--dusk-soft);border-color:var(--dusk);color:var(--dusk)}
+.chip.Skipped{background:var(--stone-soft);color:var(--stone)}
+.check{flex:none;width:32px;height:32px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;color:transparent;font-size:16px}
+.check.on{background:var(--moss);border-color:var(--moss);color:#fff}
+.empty{color:var(--ink2);font-size:14px;background:transparent;border:1px dashed var(--line);border-radius:14px;padding:18px 14px;text-align:center;margin:10px 0;line-height:1.5}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;padding:10px 16px;font-size:15px;border:1px solid var(--line);background:var(--paper2)}
+.btn:active{background:#EFEBDD}
+.btn.primary{background:var(--moss);border-color:var(--moss);color:#fff}
+.btn.primary:active{background:#57633F}
+.btn.small{padding:6px 12px;font-size:13px;border-radius:10px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.btn.wide{width:100%;padding:13px}
+
+/* week */
+.weeknav{display:flex;align-items:center;justify-content:space-between;margin:6px 0 2px}
+.weeknav .range{font-family:var(--serif);font-size:19px}
+.arrow{font-size:20px;padding:6px 14px;border-radius:10px;color:var(--ink2)}
+.arrow:active{background:var(--stone-soft)}
+.dayhead{display:flex;align-items:baseline;gap:8px;margin:20px 0 2px}
+.dayhead .dn{font-family:var(--serif);font-size:18px}
+.dayhead .dd{color:var(--ink2);font-size:13px}
+.today-mark{font-size:11px;color:var(--moss);border:1px solid var(--moss);border-radius:999px;padding:1px 8px}
+.past{opacity:.55}
+.addline{color:var(--ink2);font-size:13px;padding:6px 4px;border-radius:8px}
+.addline:active{background:var(--stone-soft)}
+.basket{background:var(--paper2);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:12px 0}
+.basket .card{background:var(--paper)}
+
+/* archive */
+.rec{background:var(--paper2);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
+.rec .rd{font-family:var(--serif);font-size:18px}
+.rec .preview{color:var(--ink2);font-size:14px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.paper{white-space:pre-wrap;font-family:var(--serif);font-size:15.5px;line-height:26px;background:repeating-linear-gradient(transparent,transparent 25px,var(--line) 25px,var(--line) 26px);padding:0 2px;margin:12px 0}
+
+/* tabs */
+#tabs{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:6px;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+#tabs button{font-family:var(--serif);font-size:16px;padding:8px 20px;border-radius:12px;color:var(--ink2);border-bottom:2px solid transparent}
+#tabs button.on{color:var(--ink);border-bottom-color:var(--moss)}
+
+/* sheet / modal */
+#overlay{position:fixed;inset:0;background:rgba(44,39,28,.4);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+#overlay[hidden]{display:none}
+#sheet{background:var(--paper2);width:100%;max-width:560px;max-height:92dvh;overflow-y:auto;border-radius:20px 20px 0 0;padding:18px 18px calc(24px + env(safe-area-inset-bottom))}
+.sheettitle{font-family:var(--serif);font-size:21px;margin:0 0 12px}
+.field{margin:12px 0}
+.field label{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:5px}
+.field input[type=text],.field input[type=date],.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--paper);color:var(--ink)}
+.field textarea{min-height:64px;resize:vertical;line-height:1.45}
+.statusrow{display:flex;gap:6px;flex-wrap:wrap}
+.statusrow .chip{padding:7px 13px;font-size:13px}
+.statusrow .chip.sel{border-width:1.5px;font-weight:600}
+.statusrow .chip.sel.Planned{border-color:var(--ink);color:var(--ink)}
+.dayspick{display:flex;gap:5px;flex-wrap:wrap}
+.dayspick .chip{padding:7px 11px}
+.dayspick .chip.sel{background:var(--moss-soft);border-color:var(--moss);color:var(--moss);font-weight:600}
+.danger{color:var(--berry)}
+hr.soft{border:none;border-top:1px solid var(--line);margin:16px 0}
+.pinrow{display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0;width:100%;text-align:left}
+.pinrow .pt{flex:1;font-family:var(--serif);font-size:16px}
+
+/* toast */
+#toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 16px;border-radius:999px;font-size:14px;z-index:99;opacity:.95}
+#toast[hidden]{display:none}
+
+/* review wizard */
+.wizcard{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0;text-align:center}
+.wizcard .wt{font-family:var(--serif);font-size:19px;margin-bottom:2px}
+.wizopts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.progress{color:var(--ink2);font-size:12px;text-align:center;letter-spacing:.1em}
+
+@media (prefers-reduced-motion: no-preference){
+  #sheet{animation:up .18s ease-out}
+  @keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <div class="brand">Hearth</div>
+    <button class="quietbtn" onclick="openBackup()">Backup</button>
+  </header>
+  <main id="view"></main>
+</div>
+<nav id="tabs">
+  <button data-tab="today" onclick="setTab('today')">Today</button>
+  <button data-tab="week" onclick="setTab('week')">Week</button>
+  <button data-tab="archive" onclick="setTab('archive')">Archive</button>
+</nav>
+<div id="overlay" hidden>
+  <div id="sheet" role="dialog" aria-modal="true"><div id="sheetBody"></div></div>
+</div>
+<div id="toast" hidden></div>
+
+<script>
+'use strict';
+/* ============ constants ============ */
+const TYPES=['Faith','Reading','Literacy','Maths','History','Science','Nature','Craft','Arts & Culture','Practical life','Habits','Meal','Outing','Community','Mother culture','Child note','Other'];
+const STATUSES=['Planned','Done','Partial','Moved','Skipped'];
+const TYPE_DOT={'Faith':'#8A76A8','Reading':'#5E7286','Literacy':'#B98A2E','Maths':'#67754C','History':'#7A5C43','Science':'#46878F','Nature':'#4E7A5A','Craft':'#B96B4A','Arts & Culture':'#6F6AA8','Practical life':'#8C8455','Habits':'#7D7A96','Meal':'#C2913F','Outing':'#5B8AA6','Community':'#B25E6E','Mother culture':'#8A5A63','Child note':'#A87676','Other':'#9A948A'};
+const WD=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const WDS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const MO=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+/* ============ storage ============ */
+const KEY='hearth-state-v1';
+const hasWinStorage = typeof window.storage==='object' && window.storage && typeof window.storage.get==='function';
+const Store={
+  async load(){
+    if(hasWinStorage){
+      try{const r=await window.storage.get(KEY); if(r&&r.value) return JSON.parse(r.value);}catch(e){}
+      return null;
+    }
+    try{const s=localStorage.getItem(KEY); return s?JSON.parse(s):null;}catch(e){return null;}
+  },
+  async save(st){
+    const s=JSON.stringify(st);
+    if(hasWinStorage){ try{await window.storage.set(KEY,s);}catch(e){console.error(e);} return; }
+    try{localStorage.setItem(KEY,s);}catch(e){console.error(e);}
+  }
+};
+let saveTimer=null;
+function persist(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>Store.save(state),350); }
+
+/* ============ state ============ */
+let state=null;
+let tab='today';
+let weekOffset=0;
+let editorStatus='Planned';
+
+function freshState(){
+  return {
+    cards:[], records:[], seeded:true,
+    pins:[
+      {id:uid(),title:'House rules',body:''},
+      {id:uid(),title:'Anger scripts',body:''},
+      {id:uid(),title:'Baby activities',body:''},
+      {id:uid(),title:'Something motivational',body:''}
+    ],
+    defaults:[
+      {id:uid(),title:'Bible / New Testament',type:'Faith',days:[0,1,2,3,4]},
+      {id:uid(),title:'Букварь',type:'Literacy',days:[0,1,2,3,4]},
+      {id:uid(),title:'Read-aloud',type:'Reading',days:[0,1,2,3,4]},
+      {id:uid(),title:'Mother culture',type:'Mother culture',days:[0,1,2,3,4]}
+    ]
+  };
+}
+function uid(){ return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ============ date helpers ============ */
+function pad(n){return (n<10?'0':'')+n;}
+function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function fromISO(s){return new Date(s+'T12:00:00');}
+function todayISO(){return iso(new Date());}
+function monday(d){const x=new Date(d); x.setDate(x.getDate()-((x.getDay()+6)%7)); return x;}
+function weekDates(offset){const m=monday(new Date()); m.setDate(m.getDate()+offset*7); const a=[]; for(let i=0;i<7;i++){const d=new Date(m); d.setDate(m.getDate()+i); a.push(iso(d));} return a;}
+function fmtLong(s){const d=fromISO(s); return WD[(d.getDay()+6)%7]+', '+d.getDate()+' '+MO[d.getMonth()];}
+function fmtShort(s){const d=fromISO(s); return d.getDate()+' '+MO[d.getMonth()].slice(0,3);}
+function weekdayName(s){const d=fromISO(s); return WD[(d.getDay()+6)%7];}
+
+/* ============ utils ============ */
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg){const t=document.getElementById('toast'); t.textContent=msg; t.hidden=false; clearTimeout(t._h); t._h=setTimeout(()=>t.hidden=true,1800);}
+function byId(id){return state.cards.find(c=>c.id===id);}
+function liveCards(){return state.cards.filter(c=>!c.archived);}
+const SQUIG='<svg class="squig" viewBox="0 0 120 8" aria-hidden="true"><path d="M2 5 C 20 1, 40 8, 60 4 S 100 2, 118 5" fill="none" stroke="#67754C" stroke-width="2" stroke-linecap="round"/></svg>';
+
+/* ============ tabs & render ============ */
+function setTab(t){ tab=t; if(t==='week') weekOffset=0; render(); window.scrollTo(0,0); }
+function render(){
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  const v=document.getElementById('view');
+  if(tab==='today') v.innerHTML=renderToday();
+  else if(tab==='week') v.innerHTML=renderWeek();
+  else v.innerHTML=renderArchive();
+}
+
+/* ============ card row ============ */
+function cardRow(c,showDay){
+  const dot=TYPE_DOT[c.type]||'#9A948A';
+  const sub=showDay?('<small>'+(c.date?fmtShort(c.date):'Idea Basket')+'</small>'):'';
+  return '<button class="card" onclick="openCard(\''+c.id+'\')">'
+    +'<span class="dot" style="background:'+dot+'"></span>'
+    +'<span class="t">'+esc(c.title||'(untitled)')+sub+'</span>'
+    +'<span class="chip '+c.status+'">'+c.status+'</span>'
+    +'<span class="check '+(c.status==='Done'?'on':'')+'" role="button" aria-label="mark done" onclick="event.stopPropagation();toggleDone(\''+c.id+'\')">✓</span>'
+    +'</button>';
+}
+function toggleDone(id){const c=byId(id); if(!c)return; c.status=(c.status==='Done')?'Planned':'Done'; persist(); render();}
+
+/* ============ TODAY ============ */
+function renderToday(){
+  const t=todayISO();
+  const cards=liveCards().filter(c=>c.date===t);
+  let h='<div class="eyebrow">Today</div><h1 class="date">'+fmtLong(t)+'</h1>'+SQUIG;
+  h+='<div class="btnrow"><button class="btn small" onclick="openPins()">📌 Pinned</button></div>';
+  if(cards.length===0){
+    h+='<div class="empty">Nothing planned for today yet.<br>Open <b>Week</b> to plan, or just add what happens.</div>';
+  } else {
+    h+=cards.map(c=>cardRow(c,false)).join('');
+  }
+  h+='<div class="btnrow"><button class="btn" onclick="openHappened()">+ Happened</button><button class="btn" onclick="openCardEditor(null,\''+t+'\')">+ Card</button></div>';
+  h+='<hr class="soft"><button class="btn wide" onclick="startReview()">End the day · Generate review</button>';
+  h+='<p class="quiet" style="text-align:center;margin-top:10px">The review gathers today into the Archive — nothing is judged, nothing is lost.</p>';
+  return h;
+}
+
+/* ============ WEEK ============ */
+function renderWeek(){
+  const days=weekDates(weekOffset);
+  const t=todayISO();
+  const label = weekOffset===0 ? 'This week' : (fmtShort(days[0])+' – '+fmtShort(days[6]));
+  let h='<div class="weeknav"><button class="arrow" onclick="weekOffset--;render()" aria-label="previous week">‹</button>'
+      +'<span class="range">'+label+'</span>'
+      +'<button class="arrow" onclick="weekOffset++;render()" aria-label="next week">›</button></div>';
+  if(weekOffset!==0) h+='<div style="text-align:center"><button class="quietbtn" onclick="weekOffset=0;render()">back to this week</button></div>';
+  h+='<div class="btnrow"><button class="btn small" onclick="fillWeek()">Fill from defaults</button><button class="btn small" onclick="openDefaults()">Edit defaults</button></div>';
+
+  const basket=liveCards().filter(c=>!c.date);
+  h+='<div class="basket"><h2 class="sect" style="margin:0 0 2px">Idea Basket</h2><div class="sub">Ideas for the week, not tied to a day</div>';
+  h+= basket.length? basket.map(c=>cardRow(c,false)).join('') : '<div class="quiet" style="padding:4px 0 6px">Empty — ideas can wait here.</div>';
+  h+='<button class="addline" onclick="openCardEditor(null,null)">+ Add idea</button></div>';
+
+  days.forEach((d,i)=>{
+    const cards=liveCards().filter(c=>c.date===d);
+    const isToday=d===t, isPast=d<t;
+    h+='<div class="'+(isPast&&!isToday?'past':'')+'">';
+    h+='<div class="dayhead"><span class="dn">'+WD[i]+'</span><span class="dd">'+fmtShort(d)+'</span>'+(isToday?'<span class="today-mark">today</span>':'')+'</div>';
+    h+=cards.map(c=>cardRow(c,false)).join('');
+    h+='<button class="addline" onclick="openCardEditor(null,\''+d+'\')">+ Add card</button>';
+    h+='</div>';
+  });
+  return h;
+}
+
+function fillWeek(){
+  const days=weekDates(weekOffset);
+  const t=todayISO();
+  let added=0;
+  state.defaults.forEach(df=>{
+    (df.days||[]).forEach(i=>{
+      const d=days[i];
+      if(weekOffset===0 && d<t) return; // don't plan the past
+      const exists=liveCards().some(c=>c.date===d && c.title===df.title);
+      if(!exists){
+        state.cards.push({id:uid(),title:df.title,type:df.type,status:'Planned',date:d,details:'',materials:'',childNotes:'',happened:'',archived:false});
+        added++;
+      }
+    });
+  });
+  persist(); render();
+  toast(added? 'Added '+added+' cards from defaults' : 'Week already has these');
+}
+
+/* ============ ARCHIVE ============ */
+function renderArchive(){
+  let h='<div class="eyebrow">Archive</div><h1 class="date">Day records</h1>'+SQUIG;
+  if(state.records.length===0){
+    h+='<div class="empty">No day records yet.<br>At the end of a day, tap <b>Generate review</b> on the Today screen.</div>';
+    return h;
+  }
+  const recs=[...state.records].sort((a,b)=>b.date<a.date?-1:1);
+  recs.forEach(r=>{
+    const first=(r.review||'').split('\n').find(l=>l.trim())||'';
+    h+='<div class="rec">'
+      +'<button style="width:100%;text-align:left" onclick="toggleRec(\''+r.id+'\')">'
+      +'<div class="rd">'+fmtLong(r.date)+'</div>'
+      +'<div class="preview">'+esc(first)+'</div></button>'
+      +'<div id="rec-'+r.id+'" hidden>'
+      +'<div class="paper">'+esc(r.review)+'</div>'
+      +(r.cards&&r.cards.length? r.cards.map(s=>'<div class="quiet" style="padding:2px 0">• '+esc(s.title)+' — '+esc(s.status)+(s.movedTo?' → '+esc(s.movedTo):'')+'</div>').join(''):'')
+      +'<div class="btnrow"><button class="btn small danger" onclick="delRecord(\''+r.id+'\')">Delete record</button></div>'
+      +'</div></div>';
+  });
+  return h;
+}
+function toggleRec(id){const el=document.getElementById('rec-'+id); if(el) el.hidden=!el.hidden;}
+function delRecord(id){ if(!confirm('Delete this day record? This cannot be undone.'))return; state.records=state.records.filter(r=>r.id!==id); persist(); render(); }
+
+/* ============ sheet plumbing ============ */
+function openSheet(html){ document.getElementById('sheetBody').innerHTML=html; const o=document.getElementById('overlay'); o.hidden=false; document.getElementById('sheet').scrollTop=0; }
+function closeSheet(){ document.getElementById('overlay').hidden=true; }
+document.getElementById('overlay').addEventListener('click',e=>{ if(e.target.id==='overlay') closeSheet(); });
+
+/* ============ card editor ============ */
+function openCard(id){ openCardEditor(id,null); }
+function openCardEditor(id,presetDate){
+  const c=id?byId(id):null;
+  editorStatus=c?c.status:'Planned';
+  const date=c? (c.date||'') : (presetDate||'');
+  let h='<h3 class="sheettitle">'+(c?'Card':'New card')+'</h3>';
+  h+='<div class="field"><label>Title</label><input type="text" id="f-title" value="'+esc(c?c.title:'')+'" placeholder="e.g. Read-aloud, clay dishes, watermelon sorbet…"></div>';
+  h+='<div class="field"><label>Type</label><select id="f-type">'+TYPES.map(t=>'<option'+((c?c.type:'Other')===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
+  h+='<div class="field"><label>Status</label><div class="statusrow">'+STATUSES.map(s=>'<button class="chip '+s+(editorStatus===s?' sel':'')+'" data-st="'+s+'" onclick="pickStatus(this)">'+s+'</button>').join('')+'</div></div>';
+  h+='<div class="field"><label>Day</label><input type="date" id="f-date" value="'+esc(date)+'">'
+    +'<div class="btnrow" style="margin:8px 0 0"><button class="btn small" onclick="setDateField(1)">Tomorrow</button><button class="btn small" onclick="setDateField(0)">Today</button><button class="btn small" onclick="setDateField(null)">Idea Basket</button></div>'
+    +'<div class="quiet" style="margin-top:4px">No day = lives in the Idea Basket.</div></div>';
+  h+='<div class="field"><label>Details / plan</label><textarea id="f-details" placeholder="What is the idea?">'+esc(c?c.details:'')+'</textarea></div>';
+  h+='<div class="field"><label>Materials</label><textarea id="f-materials" placeholder="Books, pages, supplies, links…">'+esc(c?c.materials:'')+'</textarea></div>';
+  h+='<div class="field"><label>What actually happened</label><textarea id="f-happened" placeholder="Filled in during or after…">'+esc(c?c.happened:'')+'</textarea></div>';
+  h+='<div class="field"><label>Child notes</label><textarea id="f-childnotes" placeholder="Eldest: … / Daughter: … / Baby: …">'+esc(c?c.childNotes:'')+'</textarea></div>';
+  h+='<div class="btnrow"><button class="btn primary" onclick="saveCard(\''+(c?c.id:'')+'\')">Save</button><button class="btn" onclick="closeSheet()">Cancel</button>'
+    +(c?'<button class="btn danger" style="margin-left:auto" onclick="delCard(\''+c.id+'\')">Delete</button>':'')+'</div>';
+  openSheet(h);
+}
+function pickStatus(el){ editorStatus=el.dataset.st; document.querySelectorAll('.statusrow .chip').forEach(x=>x.classList.toggle('sel',x===el)); }
+function setDateField(offset){
+  const f=document.getElementById('f-date');
+  if(offset===null){ f.value=''; return; }
+  const d=new Date(); d.setDate(d.getDate()+offset); f.value=iso(d);
+}
+function saveCard(id){
+  const g=x=>document.getElementById(x).value;
+  const title=g('f-title').trim();
+  if(!title){ toast('A title helps you find it later'); return; }
+  const data={title, type:g('f-type'), status:editorStatus, date:g('f-date')||null, details:g('f-details'), materials:g('f-materials'), happened:g('f-happened'), childNotes:g('f-childnotes')};
+  if(id){ Object.assign(byId(id),data); }
+  else { state.cards.push(Object.assign({id:uid(),archived:false},data)); }
+  persist(); closeSheet(); render();
+}
+function delCard(id){ if(!confirm('Delete this card?'))return; state.cards=state.cards.filter(c=>c.id!==id); persist(); closeSheet(); render(); }
+
+/* ============ + Happened ============ */
+function openHappened(){
+  let h='<h3 class="sheettitle">Something happened ✳</h3><div class="sub">Unplanned learning counts — often it\'s the best part.</div>';
+  h+='<div class="field"><label>What happened?</label><textarea id="h-note" placeholder="e.g. Baby played куку for ten minutes; eldest read the shop sign by himself…"></textarea></div>';
+  h+='<div class="field"><label>Title (optional)</label><input type="text" id="h-title" placeholder="Short name for the review"></div>';
+  h+='<div class="field"><label>Type</label><select id="h-type">'+TYPES.map(t=>'<option'+(t==='Child note'?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
+  h+='<div class="btnrow"><button class="btn primary" onclick="saveHappened()">Save</button><button class="btn" onclick="closeSheet()">Cancel</button></div>';
+  openSheet(h);
+}
+function saveHappened(){
+  const note=document.getElementById('h-note').value.trim();
+  let title=document.getElementById('h-title').value.trim();
+  if(!note && !title){ toast('Write a word or two first'); return; }
+  if(!title) title=note.length>42? note.slice(0,42)+'…' : note;
+  state.cards.push({id:uid(),title,type:document.getElementById('h-type').value,status:'Done',date:todayISO(),details:'',materials:'',happened:note,childNotes:'',archived:false});
+  persist(); closeSheet(); render(); toast('Kept ✓');
+}
+
+/* ============ Pinned notes ============ */
+function openPins(){
+  let h='<h3 class="sheettitle">📌 Pinned</h3><div class="sub">Things you want at hand, always one tap away.</div>';
+  h+=state.pins.map(p=>'<button class="pinrow" onclick="openPin(\''+p.id+'\')"><span class="pt">'+esc(p.title||'(untitled)')+'</span><span class="quiet">›</span></button>').join('');
+  h+='<div class="btnrow"><button class="btn" onclick="openPin(null)">+ New pinned note</button><button class="btn" onclick="closeSheet()">Close</button></div>';
+  openSheet(h);
+}
+function openPin(id){
+  const p=id? state.pins.find(x=>x.id===id) : null;
+  let h='<h3 class="sheettitle">'+(p?'Pinned note':'New pinned note')+'</h3>';
+  h+='<div class="field"><label>Title</label><input type="text" id="p-title" value="'+esc(p?p.title:'')+'"></div>';
+  h+='<div class="field"><label>Note</label><textarea id="p-body" style="min-height:180px">'+esc(p?p.body:'')+'</textarea></div>';
+  h+='<div class="btnrow"><button class="btn primary" onclick="savePin(\''+(p?p.id:'')+'\')">Save</button><button class="btn" onclick="openPins()">Back</button>'
+    +(p?'<button class="btn danger" style="margin-left:auto" onclick="delPin(\''+p.id+'\')">Delete</button>':'')+'</div>';
+  openSheet(h);
+}
+function savePin(id){
+  const title=document.getElementById('p-title').value.trim()||'(untitled)';
+  const body=document.getElementById('p-body').value;
+  if(id){ const p=state.pins.find(x=>x.id===id); p.title=title; p.body=body; }
+  else state.pins.push({id:uid(),title,body});
+  persist(); openPins(); toast('Saved');
+}
+function delPin(id){ if(!confirm('Delete this pinned note?'))return; state.pins=state.pins.filter(p=>p.id!==id); persist(); openPins(); }
+
+/* ============ Defaults ============ */
+function openDefaults(){
+  let h='<h3 class="sheettitle">Weekly defaults</h3><div class="sub">The quiet rhythm — “Fill from defaults” adds these to the week.</div>';
+  state.defaults.forEach(df=>{
+    h+='<div class="basket" style="margin:10px 0" id="df-'+df.id+'">';
+    h+='<div class="field" style="margin-top:0"><label>Title</label><input type="text" data-df="title" value="'+esc(df.title)+'"></div>';
+    h+='<div class="field"><label>Type</label><select data-df="type">'+TYPES.map(t=>'<option'+(df.type===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
+    h+='<div class="field"><label>Days</label><div class="dayspick">'+WDS.map((w,i)=>'<button class="chip'+((df.days||[]).includes(i)?' sel':'')+'" data-day="'+i+'" onclick="this.classList.toggle(\'sel\')">'+w+'</button>').join('')+'</div></div>';
+    h+='<button class="quietbtn danger" onclick="this.closest(\'.basket\').remove()">Remove this default</button>';
+    h+='</div>';
+  });
+  h+='<div class="btnrow"><button class="btn" onclick="addDefaultBlock()">+ Add default</button></div>';
+  h+='<div class="btnrow"><button class="btn primary" onclick="saveDefaults()">Save defaults</button><button class="btn" onclick="closeSheet()">Cancel</button></div>';
+  openSheet(h);
+}
+function addDefaultBlock(){
+  const id='new'+uid();
+  const div=document.createElement('div');
+  div.className='basket'; div.style.margin='10px 0'; div.id='df-'+id;
+  div.innerHTML='<div class="field" style="margin-top:0"><label>Title</label><input type="text" data-df="title" value=""></div>'
+    +'<div class="field"><label>Type</label><select data-df="type">'+TYPES.map(t=>'<option>'+t+'</option>').join('')+'</select></div>'
+    +'<div class="field"><label>Days</label><div class="dayspick">'+WDS.map((w,i)=>'<button class="chip" data-day="'+i+'" onclick="this.classList.toggle(\'sel\')">'+w+'</button>').join('')+'</div></div>'
+    +'<button class="quietbtn danger" onclick="this.closest(\'.basket\').remove()">Remove this default</button>';
+  const rows=document.getElementById('sheetBody').querySelectorAll('.btnrow');
+  rows[0].before(div);
+}
+function saveDefaults(){
+  const blocks=document.getElementById('sheetBody').querySelectorAll('[id^="df-"]');
+  const list=[];
+  blocks.forEach(b=>{
+    const title=b.querySelector('[data-df=title]').value.trim();
+    if(!title) return;
+    const type=b.querySelector('[data-df=type]').value;
+    const days=[...b.querySelectorAll('[data-day].sel')].map(x=>+x.dataset.day);
+    list.push({id:uid(),title,type,days});
+  });
+  state.defaults=list; persist(); closeSheet(); render(); toast('Defaults saved');
+}
+
+/* ============ Review wizard ============ */
+let rw=null;
+function startReview(){
+  const t=todayISO();
+  if(state.records.some(r=>r.date===t)){
+    if(!confirm('A review for today already exists in the Archive. Generate again and replace it?')) return;
+  }
+  const todays=liveCards().filter(c=>c.date===t);
+  const unfinished=todays.filter(c=>c.status==='Planned');
+  rw={date:t, queue:unfinished.map(c=>c.id), idx:0, decisions:{}};
+  if(rw.queue.length) rwStep(); else rwCompose();
+}
+function rwStep(){
+  if(rw.idx>=rw.queue.length){ rwCompose(); return; }
+  const c=byId(rw.queue[rw.idx]);
+  const t=todayISO();
+  const week=weekDates(0).filter(d=>d>t);
+  let h='<div class="progress">'+(rw.idx+1)+' of '+rw.queue.length+' unfinished</div>';
+  h+='<div class="wizcard"><div class="wt">'+esc(c.title)+'</div><div class="quiet">didn\'t happen today — and that\'s fine</div></div>';
+  h+='<div class="wizopts">';
+  h+='<button class="btn" onclick="rwChoose(\'tomorrow\')">→ Move to tomorrow</button>';
+  if(week.length>1) h+='<button class="btn" onclick="rwLater()">→ Later this week…</button>';
+  h+='<button class="btn" onclick="rwChoose(\'basket\')">→ Idea Basket</button>';
+  h+='<button class="btn" onclick="rwChoose(\'skip\')">Let it go (skip)</button>';
+  h+='</div><div class="btnrow" style="justify-content:center;margin-top:16px"><button class="quietbtn" onclick="closeSheet()">Cancel review</button></div>';
+  openSheet(h);
+}
+function rwLater(){
+  const t=todayISO();
+  const week=weekDates(0).filter(d=>d>t);
+  let h='<div class="progress">choose a day</div>';
+  h+='<div class="wizopts">'+week.map(d=>'<button class="btn" onclick="rwChoose(\'day:'+d+'\')">'+weekdayName(d)+' · '+fmtShort(d)+'</button>').join('')+'</div>';
+  h+='<div class="btnrow" style="justify-content:center;margin-top:16px"><button class="quietbtn" onclick="rwStep()">back</button></div>';
+  openSheet(h);
+}
+function rwChoose(opt){ rw.decisions[rw.queue[rw.idx]]=opt; rw.idx++; rwStep(); }
+
+function snapToday(){
+  const t=rw.date;
+  const todays=liveCards().filter(c=>c.date===t);
+  return todays.map(c=>{
+    const dec=rw.decisions[c.id];
+    let status=c.status, movedTo='';
+    if(dec==='tomorrow'){status='Moved';movedTo='tomorrow';}
+    else if(dec==='basket'){status='Moved';movedTo='Idea Basket';}
+    else if(dec==='skip'){status='Skipped';}
+    else if(dec&&dec.startsWith('day:')){status='Moved';movedTo=weekdayName(dec.slice(4));}
+    return {title:c.title,type:c.type,status,movedTo,happened:c.happened||'',childNotes:c.childNotes||''};
+  });
+}
+function buildReview(snaps){
+  const lines=[];
+  const names=s=>snaps.filter(c=>c.status===s).map(c=>c.title);
+  const done=names('Done'), partial=names('Partial'), skipped=names('Skipped');
+  const moved=snaps.filter(c=>c.status==='Moved');
+  if(done.length) lines.push('Done: '+done.join(', ')+'.');
+  if(partial.length) lines.push('Partial: '+partial.join(', ')+'.');
+  if(moved.length) lines.push('Moved: '+moved.map(c=>c.title+(c.movedTo?' (to '+c.movedTo+')':'')).join(', ')+'.');
+  if(skipped.length) lines.push('Skipped: '+skipped.join(', ')+'.');
+  const noted=snaps.filter(c=>c.happened.trim()||c.childNotes.trim());
+  if(noted.length){
+    lines.push('','Notes:');
+    noted.forEach(c=>{
+      const bits=[c.happened.trim(),c.childNotes.trim()].filter(Boolean);
+      lines.push(c.title+': '+bits.join(' — '));
+    });
+  }
+  const mc=snaps.filter(c=>c.type==='Mother culture');
+  if(mc.length){
+    lines.push('','Mother culture: '+mc.map(c=>{const n=(c.happened||c.childNotes||'').trim(); return c.title+(n?' — '+n:'');}).join('; ')+'.');
+  }
+  if(!lines.length) lines.push('A quiet day — nothing recorded.');
+  return lines.join('\n');
+}
+function rwCompose(){
+  const snaps=snapToday();
+  rw.snaps=snaps;
+  const text=buildReview(snaps);
+  let h='<h3 class="sheettitle">Today\'s review</h3><div class="sub">Edit anything before saving — it becomes today\'s Day Record.</div>';
+  h+='<div class="field"><textarea id="rv-text" style="min-height:260px;font-family:var(--serif);line-height:1.6">'+esc(text)+'</textarea></div>';
+  h+='<div class="btnrow"><button class="btn primary" onclick="rwSave()">Save to Archive</button><button class="btn" onclick="closeSheet()">Cancel</button></div>';
+  openSheet(h);
+}
+function rwSave(){
+  const t=rw.date;
+  const review=document.getElementById('rv-text').value;
+  // apply decisions to real cards
+  const todays=liveCards().filter(c=>c.date===t);
+  todays.forEach(c=>{
+    const dec=rw.decisions[c.id];
+    if(dec==='tomorrow'){ const d=fromISO(t); d.setDate(d.getDate()+1); c.date=iso(d); c.status='Planned'; }
+    else if(dec==='basket'){ c.date=null; c.status='Planned'; }
+    else if(dec==='skip'){ c.status='Skipped'; c.archived=true; }
+    else if(dec&&dec.startsWith('day:')){ c.date=dec.slice(4); c.status='Planned'; }
+    else { c.archived=true; } // Done / Partial / manually Moved or Skipped — folded into the day
+  });
+  state.records=state.records.filter(r=>r.date!==t);
+  state.records.push({id:uid(),date:t,review,cards:rw.snaps});
+  rw=null; persist(); closeSheet(); setTab('archive'); toast('Day kept ✓');
+}
+
+/* ============ Backup ============ */
+function openBackup(){
+  let h='<h3 class="sheettitle">Backup</h3><div class="sub">Your diary lives only on this device. Once in a while, copy a backup somewhere safe (notes app, email to yourself…).</div>';
+  h+='<div class="btnrow"><button class="btn" onclick="doExport()">Show backup text</button><button class="btn" onclick="doDownload()">Download file</button></div>';
+  h+='<div class="field"><label>Backup text</label><textarea id="bk-text" style="min-height:120px" placeholder="Tap “Show backup text”, then copy it. To restore: paste a backup here and tap Restore."></textarea></div>';
+  h+='<div class="btnrow"><button class="btn" onclick="doCopy()">Copy</button><button class="btn danger" onclick="doImport()">Restore from pasted text</button><button class="btn" style="margin-left:auto" onclick="closeSheet()">Close</button></div>';
+  openSheet(h);
+}
+function doExport(){ document.getElementById('bk-text').value=JSON.stringify(state); toast('Backup text ready — copy it'); }
+function doCopy(){
+  const t=document.getElementById('bk-text'); if(!t.value) doExport();
+  t.select(); t.setSelectionRange(0,99999999);
+  try{ navigator.clipboard.writeText(t.value).then(()=>toast('Copied')); }catch(e){ document.execCommand('copy'); toast('Copied'); }
+}
+function doDownload(){
+  try{
+    const blob=new Blob([JSON.stringify(state)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='hearth-backup-'+todayISO()+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+  }catch(e){ toast('Download blocked here — use “Show backup text”'); }
+}
+function doImport(){
+  const raw=document.getElementById('bk-text').value.trim();
+  if(!raw){ toast('Paste a backup first'); return; }
+  let obj;
+  try{ obj=JSON.parse(raw); }catch(e){ toast('That doesn\'t look like a Hearth backup'); return; }
+  if(!obj||!Array.isArray(obj.cards)){ toast('That doesn\'t look like a Hearth backup'); return; }
+  if(!confirm('Replace everything in the app with this backup?')) return;
+  state=obj; persist(); closeSheet(); render(); toast('Restored ✓');
+}
+
+/* ============ boot ============ */
+(async function(){
+  const loaded=await Store.load();
+  state=loaded||freshState();
+  if(!state.pins) state.pins=[];
+  if(!state.defaults) state.defaults=[];
+  if(!state.records) state.records=[];
+  if(!state.cards) state.cards=[];
+  render();
+  persist();
+  if('serviceWorker' in navigator && location.protocol==='https:'){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+})();
+</script>
+</body>
+</html>
