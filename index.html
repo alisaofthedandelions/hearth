@@ -183,7 +183,7 @@ let editorStatus='Planned';
 
 function freshState(){
   return {
-    cards:[], records:[], seeded:true,
+    cards:[], records:[], library:[], seeded:true,
     pins:[
       {id:uid(),title:'House rules',body:''},
       {id:uid(),title:'Anger scripts',body:''},
@@ -252,7 +252,7 @@ function renderToday(){
   } else {
     h+=cards.map(c=>cardRow(c,false)).join('');
   }
-  h+='<div class="btnrow"><button class="btn" onclick="openHappened()">+ Happened</button><button class="btn" onclick="openCardEditor(null,\''+t+'\')">+ Card</button></div>';
+  h+='<div class="btnrow"><button class="btn" onclick="openHappened()">+ Happened</button><button class="btn" onclick="openCardEditor(null,\''+t+'\')">+ Card</button><button class="btn" onclick="openLibrary(\''+t+'\')">📚 Library</button></div>';
   h+='<hr class="soft"><button class="btn wide" onclick="startReview()">End the day · Generate review</button>';
   h+='<p class="quiet" style="text-align:center;margin-top:10px">The review gathers today into the Archive — nothing is judged, nothing is lost.</p>';
   return h;
@@ -267,7 +267,7 @@ function renderWeek(){
       +'<span class="range">'+label+'</span>'
       +'<button class="arrow" onclick="weekOffset++;render()" aria-label="next week">›</button></div>';
   if(weekOffset!==0) h+='<div style="text-align:center"><button class="quietbtn" onclick="weekOffset=0;render()">back to this week</button></div>';
-  h+='<div class="btnrow"><button class="btn small" onclick="fillWeek()">Fill from defaults</button><button class="btn small" onclick="openDefaults()">Edit defaults</button></div>';
+  h+='<div class="btnrow"><button class="btn small" onclick="fillWeek()">Fill from defaults</button><button class="btn small" onclick="openDefaults()">Edit defaults</button><button class="btn small" onclick="openLibrary(null)">📚 Library</button></div>';
 
   const basket=liveCards().filter(c=>!c.date);
   h+='<div class="basket"><h2 class="sect" style="margin:0 0 2px">Idea Basket</h2><div class="sub">Ideas for the week, not tied to a day</div>';
@@ -337,21 +337,23 @@ document.getElementById('overlay').addEventListener('click',e=>{ if(e.target.id=
 
 /* ============ card editor ============ */
 function openCard(id){ openCardEditor(id,null); }
-function openCardEditor(id,presetDate){
+function openCardEditor(id,presetDate,prefill){
   const c=id?byId(id):null;
+  const p=prefill||null;
   editorStatus=c?c.status:'Planned';
   const date=c? (c.date||'') : (presetDate||'');
   let h='<h3 class="sheettitle">'+(c?'Card':'New card')+'</h3>';
-  h+='<div class="field"><label>Title</label><input type="text" id="f-title" value="'+esc(c?c.title:'')+'" placeholder="e.g. Read-aloud, clay dishes, watermelon sorbet…"></div>';
-  h+='<div class="field"><label>Type</label><select id="f-type">'+TYPES.map(t=>'<option'+((c?c.type:'Other')===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
+  h+='<div class="field"><label>Title</label><input type="text" id="f-title" value="'+esc(c?c.title:(p?p.title:''))+'" placeholder="e.g. Read-aloud, clay dishes, watermelon sorbet…"></div>';
+  h+='<div class="field"><label>Type</label><select id="f-type">'+TYPES.map(t=>'<option'+((c?c.type:(p?p.type:'Other'))===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
   h+='<div class="field"><label>Status</label><div class="statusrow">'+STATUSES.map(s=>'<button class="chip '+s+(editorStatus===s?' sel':'')+'" data-st="'+s+'" onclick="pickStatus(this)">'+s+'</button>').join('')+'</div></div>';
   h+='<div class="field"><label>Day</label><input type="date" id="f-date" value="'+esc(date)+'">'
     +'<div class="btnrow" style="margin:8px 0 0"><button class="btn small" onclick="setDateField(1)">Tomorrow</button><button class="btn small" onclick="setDateField(0)">Today</button><button class="btn small" onclick="setDateField(null)">Idea Basket</button></div>'
     +'<div class="quiet" style="margin-top:4px">No day = lives in the Idea Basket.</div></div>';
-  h+='<div class="field"><label>Details / plan</label><textarea id="f-details" placeholder="What is the idea?">'+esc(c?c.details:'')+'</textarea></div>';
-  h+='<div class="field"><label>Materials</label><textarea id="f-materials" placeholder="Books, pages, supplies, links…">'+esc(c?c.materials:'')+'</textarea></div>';
+  h+='<div class="field"><label>Details / plan</label><textarea id="f-details" placeholder="What is the idea?">'+esc(c?c.details:(p?p.details:''))+'</textarea></div>';
+  h+='<div class="field"><label>Materials</label><textarea id="f-materials" placeholder="Books, pages, supplies, links…">'+esc(c?c.materials:(p?p.materials:''))+'</textarea></div>';
   h+='<div class="field"><label>What actually happened</label><textarea id="f-happened" placeholder="Filled in during or after…">'+esc(c?c.happened:'')+'</textarea></div>';
   h+='<div class="field"><label>Child notes</label><textarea id="f-childnotes" placeholder="Eldest: … / Daughter: … / Baby: …">'+esc(c?c.childNotes:'')+'</textarea></div>';
+  h+='<div class="btnrow" style="margin-bottom:0"><button class="quietbtn" onclick="saveToLibrary()">📚 Save to Library</button></div>';
   h+='<div class="btnrow"><button class="btn primary" onclick="saveCard(\''+(c?c.id:'')+'\')">Save</button><button class="btn" onclick="closeSheet()">Cancel</button>'
     +(c?'<button class="btn danger" style="margin-left:auto" onclick="delCard(\''+c.id+'\')">Delete</button>':'')+'</div>';
   openSheet(h);
@@ -415,6 +417,65 @@ function savePin(id){
   persist(); openPins(); toast('Saved');
 }
 function delPin(id){ if(!confirm('Delete this pinned note?'))return; state.pins=state.pins.filter(p=>p.id!==id); persist(); openPins(); }
+
+/* ============ Library ============ */
+let libDate=null;
+function openLibrary(useDate){
+  libDate=useDate||null;
+  let h='<h3 class="sheettitle">📚 Library</h3><div class="sub">Favourite activities and recipes, kept ready. Tap one to use it — no retyping.</div>';
+  if(!state.library.length){
+    h+='<div class="empty">Empty shelves so far.<br>Open any card and tap <b>📚 Save to Library</b> when it turns out to be a keeper — or start one below.</div>';
+  } else {
+    const sorted=[...state.library].sort((a,b)=>a.title.localeCompare(b.title));
+    h+=sorted.map(t=>'<div class="pinrow" style="padding:8px 12px">'
+      +'<span class="dot" style="background:'+(TYPE_DOT[t.type]||'#9A948A')+'"></span>'
+      +'<button style="flex:1;text-align:left;min-width:0" onclick="useTemplate(\''+t.id+'\')"><span class="pt">'+esc(t.title)+'</span><div class="quiet" style="font-size:12px">'+esc(t.type)+'</div></button>'
+      +'<button class="quietbtn" onclick="openTemplate(\''+t.id+'\')">Edit</button>'
+      +'</div>').join('');
+  }
+  h+='<div class="btnrow"><button class="btn" onclick="openTemplate(null)">+ New library card</button><button class="btn" onclick="closeSheet()">Close</button></div>';
+  openSheet(h);
+}
+function useTemplate(id){
+  const t=state.library.find(x=>x.id===id); if(!t) return;
+  openCardEditor(null, libDate, {title:t.title,type:t.type,details:t.details||'',materials:t.materials||''});
+  toast(libDate?'Set the day if needed, then Save':'Pick a day — or leave it for the Idea Basket');
+}
+function openTemplate(id){
+  const t=id? state.library.find(x=>x.id===id) : null;
+  let h='<h3 class="sheettitle">'+(t?'Library card':'New library card')+'</h3>';
+  h+='<div class="field"><label>Title</label><input type="text" id="t-title" value="'+esc(t?t.title:'')+'"></div>';
+  h+='<div class="field"><label>Type</label><select id="t-type">'+TYPES.map(x=>'<option'+((t?t.type:'Other')===x?' selected':'')+'>'+x+'</option>').join('')+'</select></div>';
+  h+='<div class="field"><label>Details / plan</label><textarea id="t-details">'+esc(t?t.details:'')+'</textarea></div>';
+  h+='<div class="field"><label>Materials / recipe</label><textarea id="t-materials" style="min-height:120px">'+esc(t?t.materials:'')+'</textarea></div>';
+  h+='<div class="btnrow"><button class="btn primary" onclick="saveTemplate(\''+(t?t.id:'')+'\')">Save</button><button class="btn" onclick="openLibrary(libDate)">Back</button>'
+    +(t?'<button class="btn danger" style="margin-left:auto" onclick="delTemplate(\''+t.id+'\')">Delete</button>':'')+'</div>';
+  openSheet(h);
+}
+function saveTemplate(id){
+  const g=x=>document.getElementById(x).value;
+  const title=g('t-title').trim();
+  if(!title){ toast('A title first, so the shelf knows it'); return; }
+  const data={title,type:g('t-type'),details:g('t-details'),materials:g('t-materials')};
+  if(id){ Object.assign(state.library.find(x=>x.id===id),data); }
+  else state.library.push(Object.assign({id:uid()},data));
+  persist(); openLibrary(libDate); toast('Shelved 📚');
+}
+function delTemplate(id){
+  if(!confirm('Remove this card from the Library? (Cards already used in your weeks stay untouched.)'))return;
+  state.library=state.library.filter(x=>x.id!==id);
+  persist(); openLibrary(libDate);
+}
+function saveToLibrary(){
+  const g=x=>document.getElementById(x).value;
+  const title=g('f-title').trim();
+  if(!title){ toast('A title first, so the Library can shelve it'); return; }
+  const data={title,type:g('f-type'),details:g('f-details'),materials:g('f-materials')};
+  const existing=state.library.find(x=>x.title===title);
+  if(existing){ Object.assign(existing,data); toast('Library card updated 📚'); }
+  else { state.library.push(Object.assign({id:uid()},data)); toast('Kept in the Library 📚'); }
+  persist();
+}
 
 /* ============ Defaults ============ */
 function openDefaults(){
@@ -594,6 +655,7 @@ function doImport(){
   const loaded=await Store.load();
   state=loaded||freshState();
   if(!state.pins) state.pins=[];
+  if(!state.library) state.library=[];
   if(!state.defaults) state.defaults=[];
   if(!state.records) state.records=[];
   if(!state.cards) state.cards=[];
