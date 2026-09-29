@@ -148,9 +148,9 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:16px 0}
 <script>
 'use strict';
 /* ============ constants ============ */
-const TYPES=['Faith','Reading','Literacy','Maths','History','Science','Nature','Craft','Arts & Culture','Practical life','Habits','Meal','Outing','Community','Mother culture','Child note','Other'];
+const TYPES=['Faith','Reading','Literacy','Час итальянского','Maths','History','Science','Nature','Craft','Arts & Culture','Practical life','Habits','Meal','Outing','Community','Mother culture','Child note','Other'];
 const STATUSES=['Planned','Done','Partial','Moved','Skipped'];
-const TYPE_DOT={'Faith':'#8A76A8','Reading':'#5E7286','Literacy':'#B98A2E','Maths':'#67754C','History':'#7A5C43','Science':'#46878F','Nature':'#4E7A5A','Craft':'#B96B4A','Arts & Culture':'#6F6AA8','Practical life':'#8C8455','Habits':'#7D7A96','Meal':'#C2913F','Outing':'#5B8AA6','Community':'#B25E6E','Mother culture':'#8A5A63','Child note':'#A87676','Other':'#9A948A'};
+const TYPE_DOT={'Faith':'#8A76A8','Reading':'#5E7286','Literacy':'#B98A2E','Час итальянского':'#B96B4A','Maths':'#67754C','History':'#7A5C43','Science':'#46878F','Nature':'#4E7A5A','Craft':'#B96B4A','Arts & Culture':'#6F6AA8','Practical life':'#8C8455','Habits':'#7D7A96','Meal':'#C2913F','Outing':'#5B8AA6','Community':'#B25E6E','Mother culture':'#8A5A63','Child note':'#A87676','Other':'#9A948A'};
 const WD=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const WDS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const MO=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -178,6 +178,7 @@ function persist(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>Store.save
 /* ============ state ============ */
 let state=null;
 let tab='today';
+let selectedDay=todayISO();
 let weekOffset=0;
 let editorStatus='Planned';
 
@@ -216,10 +217,30 @@ function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'
 function toast(msg){const t=document.getElementById('toast'); t.textContent=msg; t.hidden=false; clearTimeout(t._h); t._h=setTimeout(()=>t.hidden=true,1800);}
 function byId(id){return state.cards.find(c=>c.id===id);}
 function liveCards(){return state.cards.filter(c=>!c.archived);}
+function pendingDays(){
+  const t=todayISO();
+  return [...new Set(liveCards().filter(c=>c.date && c.date<t).map(c=>c.date))].sort().reverse();
+}
+function pendingDayRows(){
+  return pendingDays().map(d=>'<button class="card" onclick="openDay(\''+d+'\')"><span class="t">'+fmtLong(d)+'<small>'+liveCards().filter(c=>c.date===d).length+' cards awaiting review</small></span><span class="quiet">›</span></button>').join('');
+}
+function openPendingDays(){
+  openSheet('<h3 class="sheettitle">Days awaiting review</h3>'+pendingDayRows()+'<div class="btnrow"><button class="btn" onclick="closeSheet()">Close</button></div>');
+}
+function openDay(date){ selectedDay=date; closeSheet(); tab='today'; render(); window.scrollTo(0,0); }
+function shiftDay(offset){const d=fromISO(selectedDay);d.setDate(d.getDate()+offset);openDay(iso(d));}
+function reopenCard(c){
+  if(!c.archived) return;
+  const r=state.records.find(r=>r.date===c.date);
+  // Older backups have snapshots without IDs. Link before editing the title.
+  const s=r && (r.cards||[]).find(s=>!s.id && s.title===c.title && s.type===c.type);
+  if(s) s.id=c.id;
+  c.archived=false;
+}
 const SQUIG='<svg class="squig" viewBox="0 0 120 8" aria-hidden="true"><path d="M2 5 C 20 1, 40 8, 60 4 S 100 2, 118 5" fill="none" stroke="#67754C" stroke-width="2" stroke-linecap="round"/></svg>';
 
 /* ============ tabs & render ============ */
-function setTab(t){ tab=t; if(t==='week') weekOffset=0; render(); window.scrollTo(0,0); }
+function setTab(t){ tab=t; if(t==='today') selectedDay=todayISO(); if(t==='week') weekOffset=0; render(); window.scrollTo(0,0); }
 function render(){
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   const v=document.getElementById('view');
@@ -239,22 +260,28 @@ function cardRow(c,showDay){
     +'<span class="check '+(c.status==='Done'?'on':'')+'" role="button" aria-label="mark done" onclick="event.stopPropagation();toggleDone(\''+c.id+'\')">✓</span>'
     +'</button>';
 }
-function toggleDone(id){const c=byId(id); if(!c)return; c.status=(c.status==='Done')?'Planned':'Done'; persist(); render();}
+function toggleDone(id){const c=byId(id); if(!c)return; reopenCard(c); c.status=(c.status==='Done')?'Planned':'Done'; persist(); render();}
 
 /* ============ TODAY ============ */
 function renderToday(){
-  const t=todayISO();
-  const cards=liveCards().filter(c=>c.date===t);
-  let h='<div class="eyebrow">Today</div><h1 class="date">'+fmtLong(t)+'</h1>'+SQUIG;
+  const t=selectedDay;
+  const cards=state.cards.filter(c=>c.date===t);
+  const record=state.records.find(r=>r.date===t);
+  const pending=pendingDays();
+  let h='<div class="weeknav"><button class="arrow" onclick="shiftDay(-1)" aria-label="previous day">‹</button><span class="quiet">'+(t===todayISO()?'Today':'Day')+'</span><button class="arrow" onclick="shiftDay(1)" aria-label="next day">›</button></div>';
+  h+='<h1 class="date">'+fmtLong(t)+'</h1>'+SQUIG;
+  if(t!==todayISO()) h+='<button class="quietbtn" onclick="openDay(todayISO())">Back to today</button>';
+  if(pending.length) h+='<div class="btnrow"><button class="btn small" onclick="openPendingDays()">Days awaiting review · '+pending.length+'</button></div>';
   h+='<div class="btnrow"><button class="btn small" onclick="openPins()">📌 Pinned</button></div>';
   if(cards.length===0){
-    h+='<div class="empty">Nothing planned for today yet.<br>Open <b>Week</b> to plan, or just add what happens.</div>';
+    h+='<div class="empty">No cards for this day yet.<br>Open <b>Week</b> to plan, or add what happened.</div>';
   } else {
     h+=cards.map(c=>cardRow(c,false)).join('');
   }
   h+='<div class="btnrow"><button class="btn" onclick="openHappened()">+ Happened</button><button class="btn" onclick="openCardEditor(null,\''+t+'\')">+ Card</button><button class="btn" onclick="openLibrary(\''+t+'\')">📚 Library</button></div>';
-  h+='<hr class="soft"><button class="btn wide" onclick="startReview()">End the day · Generate review</button>';
-  h+='<p class="quiet" style="text-align:center;margin-top:10px">The review gathers today into the Archive — nothing is judged, nothing is lost.</p>';
+  if(record) h+='<h2 class="sect">Saved review</h2><div class="paper">'+esc(record.review)+'</div>';
+  h+='<hr class="soft"><button class="btn wide" onclick="startReview()">'+(record?'Edit / update review':'End the day · Generate review')+'</button>';
+  h+='<p class="quiet" style="text-align:center;margin-top:10px">Cards stay available. You can finish this day\'s review whenever you have time.</p>';
   return h;
 }
 
@@ -275,10 +302,10 @@ function renderWeek(){
   h+='<button class="addline" onclick="openCardEditor(null,null)">+ Add idea</button></div>';
 
   days.forEach((d,i)=>{
-    const cards=liveCards().filter(c=>c.date===d);
+    const cards=state.cards.filter(c=>c.date===d);
     const isToday=d===t, isPast=d<t;
     h+='<div class="'+(isPast&&!isToday?'past':'')+'">';
-    h+='<div class="dayhead"><span class="dn">'+WD[i]+'</span><span class="dd">'+fmtShort(d)+'</span>'+(isToday?'<span class="today-mark">today</span>':'')+'</div>';
+    h+='<div class="dayhead"><button class="dn" onclick="openDay(\''+d+'\')">'+WD[i]+'</button><span class="dd">'+fmtShort(d)+'</span>'+(isToday?'<span class="today-mark">today</span>':'')+'</div>';
     h+=cards.map(c=>cardRow(c,false)).join('');
     h+='<button class="addline" onclick="openCardEditor(null,\''+d+'\')">+ Add card</button>';
     h+='</div>';
@@ -294,7 +321,7 @@ function fillWeek(){
     (df.days||[]).forEach(i=>{
       const d=days[i];
       if(weekOffset===0 && d<t) return; // don't plan the past
-      const exists=liveCards().some(c=>c.date===d && c.title===df.title);
+      const exists=state.cards.some(c=>c.date===d && c.title===df.title);
       if(!exists){
         state.cards.push({id:uid(),title:df.title,type:df.type,status:'Planned',date:d,details:'',materials:'',childNotes:'',happened:'',archived:false});
         added++;
@@ -308,8 +335,10 @@ function fillWeek(){
 /* ============ ARCHIVE ============ */
 function renderArchive(){
   let h='<div class="eyebrow">Archive</div><h1 class="date">Day records</h1>'+SQUIG;
+  const pending=pendingDays();
+  if(pending.length) h+='<h2 class="sect">Awaiting review</h2>'+pendingDayRows();
   if(state.records.length===0){
-    h+='<div class="empty">No day records yet.<br>At the end of a day, tap <b>Generate review</b> on the Today screen.</div>';
+    if(!pending.length) h+='<div class="empty">No day records yet.<br>Open any day to create its review.</div>';
     return h;
   }
   const recs=[...state.records].sort((a,b)=>b.date<a.date?-1:1);
@@ -322,7 +351,7 @@ function renderArchive(){
       +'<div id="rec-'+r.id+'" hidden>'
       +'<div class="paper">'+esc(r.review)+'</div>'
       +(r.cards&&r.cards.length? r.cards.map(s=>'<div class="quiet" style="padding:2px 0">• '+esc(s.title)+' — '+esc(s.status)+(s.movedTo?' → '+esc(s.movedTo):'')+'</div>').join(''):'')
-      +'<div class="btnrow"><button class="btn small danger" onclick="delRecord(\''+r.id+'\')">Delete record</button></div>'
+      +'<div class="btnrow"><button class="btn small" onclick="openDay(\''+r.date+'\')">Open day / edit review</button><button class="btn small danger" onclick="delRecord(\''+r.id+'\')">Delete record</button></div>'
       +'</div></div>';
   });
   return h;
@@ -369,7 +398,7 @@ function saveCard(id){
   const title=g('f-title').trim();
   if(!title){ toast('A title helps you find it later'); return; }
   const data={title, type:g('f-type'), status:editorStatus, date:g('f-date')||null, details:g('f-details'), materials:g('f-materials'), happened:g('f-happened'), childNotes:g('f-childnotes')};
-  if(id){ Object.assign(byId(id),data); }
+  if(id){ const c=byId(id); reopenCard(c); Object.assign(c,data); }
   else { state.cards.push(Object.assign({id:uid(),archived:false},data)); }
   persist(); closeSheet(); render();
 }
@@ -389,7 +418,7 @@ function saveHappened(){
   let title=document.getElementById('h-title').value.trim();
   if(!note && !title){ toast('Write a word or two first'); return; }
   if(!title) title=note.length>42? note.slice(0,42)+'…' : note;
-  state.cards.push({id:uid(),title,type:document.getElementById('h-type').value,status:'Done',date:todayISO(),details:'',materials:'',happened:note,childNotes:'',archived:false});
+  state.cards.push({id:uid(),title,type:document.getElementById('h-type').value,status:'Done',date:selectedDay,details:'',materials:'',happened:note,childNotes:'',archived:false});
   persist(); closeSheet(); render(); toast('Kept ✓');
 }
 
@@ -518,25 +547,25 @@ function saveDefaults(){
 
 /* ============ Review wizard ============ */
 let rw=null;
-function startReview(){
-  const t=todayISO();
-  if(state.records.some(r=>r.date===t)){
-    if(!confirm('A review for today already exists in the Archive. Generate again and replace it?')) return;
-  }
+function startReview(date){
+  const t=date||selectedDay;
+  const record=state.records.find(r=>r.date===t);
   const todays=liveCards().filter(c=>c.date===t);
   const unfinished=todays.filter(c=>c.status==='Planned');
-  rw={date:t, queue:unfinished.map(c=>c.id), idx:0, decisions:{}};
+  rw={date:t, queue:unfinished.map(c=>c.id), idx:0, decisions:{},record:record||null};
   if(rw.queue.length) rwStep(); else rwCompose();
 }
 function rwStep(){
   if(rw.idx>=rw.queue.length){ rwCompose(); return; }
   const c=byId(rw.queue[rw.idx]);
-  const t=todayISO();
-  const week=weekDates(0).filter(d=>d>t);
+  const t=rw.date;
+  const week=weekDates(0).filter(d=>d>todayISO());
   let h='<div class="progress">'+(rw.idx+1)+' of '+rw.queue.length+' unfinished</div>';
-  h+='<div class="wizcard"><div class="wt">'+esc(c.title)+'</div><div class="quiet">didn\'t happen today — and that\'s fine</div></div>';
+  h+='<div class="wizcard"><div class="wt">'+esc(c.title)+'</div><div class="quiet">unfinished · '+fmtShort(t)+'</div></div>';
   h+='<div class="wizopts">';
-  h+='<button class="btn" onclick="rwChoose(\'tomorrow\')">→ Move to tomorrow</button>';
+  if(t<todayISO()) h+='<button class="btn" onclick="rwChoose(\'day:'+todayISO()+'\')">→ Move to today</button>';
+  const tomorrow=new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  h+='<button class="btn" onclick="rwChoose(\'day:'+iso(tomorrow)+'\')">→ Move to tomorrow</button>';
   if(week.length>1) h+='<button class="btn" onclick="rwLater()">→ Later this week…</button>';
   h+='<button class="btn" onclick="rwChoose(\'basket\')">→ Idea Basket</button>';
   h+='<button class="btn" onclick="rwChoose(\'skip\')">Let it go (skip)</button>';
@@ -544,8 +573,7 @@ function rwStep(){
   openSheet(h);
 }
 function rwLater(){
-  const t=todayISO();
-  const week=weekDates(0).filter(d=>d>t);
+  const week=weekDates(0).filter(d=>d>todayISO());
   let h='<div class="progress">choose a day</div>';
   h+='<div class="wizopts">'+week.map(d=>'<button class="btn" onclick="rwChoose(\'day:'+d+'\')">'+weekdayName(d)+' · '+fmtShort(d)+'</button>').join('')+'</div>';
   h+='<div class="btnrow" style="justify-content:center;margin-top:16px"><button class="quietbtn" onclick="rwStep()">back</button></div>';
@@ -562,8 +590,8 @@ function snapToday(){
     if(dec==='tomorrow'){status='Moved';movedTo='tomorrow';}
     else if(dec==='basket'){status='Moved';movedTo='Idea Basket';}
     else if(dec==='skip'){status='Skipped';}
-    else if(dec&&dec.startsWith('day:')){status='Moved';movedTo=weekdayName(dec.slice(4));}
-    return {title:c.title,type:c.type,status,movedTo,happened:c.happened||'',childNotes:c.childNotes||''};
+    else if(dec&&dec.startsWith('day:')){status='Moved';movedTo=fmtLong(dec.slice(4));}
+    return {id:c.id,title:c.title,type:c.type,status,movedTo,details:c.details||'',materials:c.materials||'',happened:c.happened||'',childNotes:c.childNotes||''};
   });
 }
 function buildReview(snaps){
@@ -592,9 +620,12 @@ function buildReview(snaps){
 }
 function rwCompose(){
   const snaps=snapToday();
-  rw.snaps=snaps;
-  const text=buildReview(snaps);
-  let h='<h3 class="sheettitle">Today\'s review</h3><div class="sub">Edit anything before saving — it becomes today\'s Day Record.</div>';
+  const previous=rw.record ? (rw.record.cards||[]) : [];
+  const ids=new Set(snaps.map(s=>s.id));
+  rw.snaps=previous.filter(s=>!s.id||!ids.has(s.id)).concat(snaps);
+  const saved=rw.record ? (rw.record.review||'') : '';
+  const text=rw.record ? saved+(snaps.length?'\n\n'+buildReview(snaps):'') : buildReview(snaps);
+  let h='<h3 class="sheettitle">Review · '+fmtShort(rw.date)+'</h3><div class="sub">Edit anything before saving. Your previous review is kept here.</div>';
   h+='<div class="field"><textarea id="rv-text" style="min-height:260px;font-family:var(--serif);line-height:1.6">'+esc(text)+'</textarea></div>';
   h+='<div class="btnrow"><button class="btn primary" onclick="rwSave()">Save to Archive</button><button class="btn" onclick="closeSheet()">Cancel</button></div>';
   openSheet(h);
@@ -613,7 +644,7 @@ function rwSave(){
     else { c.archived=true; } // Done / Partial / manually Moved or Skipped — folded into the day
   });
   state.records=state.records.filter(r=>r.date!==t);
-  state.records.push({id:uid(),date:t,review,cards:rw.snaps});
+  state.records.push({id:rw.record?rw.record.id:uid(),date:t,review,cards:rw.snaps});
   rw=null; persist(); closeSheet(); setTab('archive'); toast('Day kept ✓');
 }
 
