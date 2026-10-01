@@ -87,7 +87,7 @@ h2.sect{font-family:var(--serif);font-weight:normal;font-size:19px;margin:22px 0
 
 /* tabs */
 #tabs{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:6px;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
-#tabs button{font-family:var(--serif);font-size:16px;padding:8px 20px;border-radius:12px;color:var(--ink2);border-bottom:2px solid transparent}
+#tabs button{font-family:var(--serif);font-size:14px;padding:10px 6px;flex:1;max-width:110px;border-radius:12px;color:var(--ink2);border-bottom:2px solid transparent}
 #tabs button.on{color:var(--ink);border-bottom-color:var(--moss)}
 
 /* sheet / modal */
@@ -99,6 +99,7 @@ h2.sect{font-family:var(--serif);font-weight:normal;font-size:19px;margin:22px 0
 .field label{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:5px}
 .field input[type=text],.field input[type=date],.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--paper);color:var(--ink)}
 .field textarea{min-height:64px;resize:vertical;line-height:1.45}
+.field input[type=file]{max-width:100%;font-size:14px}
 .statusrow{display:flex;gap:6px;flex-wrap:wrap}
 .statusrow .chip{padding:7px 13px;font-size:13px}
 .statusrow .chip.sel{border-width:1.5px;font-weight:600}
@@ -121,6 +122,27 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:16px 0}
 .wizopts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .progress{color:var(--ink2);font-size:12px;text-align:center;letter-spacing:.1em}
 
+/* books and children's notebooks */
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0}
+.filters button{border:1px solid var(--line);border-radius:999px;padding:8px 11px;font-size:13px;background:var(--paper2)}
+.filters button.on{background:var(--moss-soft);border-color:var(--moss);color:var(--moss)}
+.bookrow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:16px 12px;background:var(--paper2);border:1px solid var(--line);border-radius:14px;margin:10px 0}
+.bookspine{width:8px;align-self:stretch;min-height:42px;border-radius:3px;background:var(--dusk);flex:none}
+.booktitle{font-family:var(--serif);font-size:20px;line-height:1.3;overflow-wrap:anywhere}
+.bookmeta{font-size:13px;color:var(--ink2);margin-top:5px;line-height:1.5}
+.reading{border-left:3px solid var(--dusk)}
+.reading .excerpt,.notetext{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;margin:10px 0;font-size:15px}
+.reading-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.position{color:var(--dusk);font-size:14px;margin:8px 0}
+.child-avatar{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--honey-soft);font-family:var(--serif);font-size:22px;flex:none}
+.notebook-row{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;background:var(--paper)}
+.formpair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.noteimage{display:block;width:auto;max-width:100%;max-height:360px;height:auto;border-radius:10px;margin:10px 0}
+.inline-new{border-left:2px solid var(--moss);padding-left:12px;margin:10px 0}
+.storagewarning{color:var(--berry);font-size:14px;border:1px solid var(--berry);border-radius:12px;padding:12px;line-height:1.5}
+[hidden]{display:none!important}
+@media(max-width:360px){.formpair{grid-template-columns:1fr}#app{padding-left:12px;padding-right:12px}}
+
 @media (prefers-reduced-motion: no-preference){
   #sheet{animation:up .18s ease-out}
   @keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
@@ -133,11 +155,14 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:16px 0}
     <div class="brand">Hearth</div>
     <button class="quietbtn" onclick="openBackup()">Backup</button>
   </header>
+  <div id="storageWarning" class="storagewarning" role="alert" hidden></div>
   <main id="view"></main>
 </div>
 <nav id="tabs">
   <button data-tab="today" onclick="setTab('today')">Today</button>
   <button data-tab="week" onclick="setTab('week')">Week</button>
+  <button data-tab="books" onclick="setTab('books')">Книги</button>
+  <button data-tab="children" onclick="setTab('children')">Дети</button>
   <button data-tab="archive" onclick="setTab('archive')">Archive</button>
 </nav>
 <div id="overlay" hidden>
@@ -168,8 +193,18 @@ const Store={
   },
   async save(st){
     const s=JSON.stringify(st);
-    if(hasWinStorage){ try{await window.storage.set(KEY,s);}catch(e){console.error(e);} return; }
-    try{localStorage.setItem(KEY,s);}catch(e){console.error(e);}
+    try{
+      if(hasWinStorage) await window.storage.set(KEY,s);
+      else localStorage.setItem(KEY,s);
+      document.getElementById('storageWarning').hidden=true;
+      return true;
+    }catch(e){
+      console.error(e);
+      const w=document.getElementById('storageWarning');
+      w.textContent='Не удалось сохранить последние изменения на устройстве. Скачайте Backup, чтобы их сохранить. Возможно, закончилось место для фотографий.';
+      w.hidden=false;
+      return false;
+    }
   }
 };
 let saveTimer=null;
@@ -181,10 +216,22 @@ let tab='today';
 let selectedDay=todayISO();
 let weekOffset=0;
 let editorStatus='Planned';
+let selectedBook=null, bookFilter='reading';
+let selectedChild=null, noteFilter='all';
+let editorEntries=[], editorNoteImage='', imageJobs=0;
+const BOOK_STATUSES={reading:'Читаем',wishlist:'Хотим прочитать',finished:'Закончили',paused:'Отложили'};
+const NOTE_KINDS=['Высказывание','Вопрос','Пересказ','Работа','Умение','Наблюдение'];
+function initialChildren(){return ['Ллеу','Алау','Эмрис'].map(name=>({id:uid(),name,about:''}));}
+function normalizeState(st){
+  ['cards','records','library','pins','defaults','books','childEntries'].forEach(k=>{if(!Array.isArray(st[k]))st[k]=[];});
+  if(!Array.isArray(st.children))st.children=initialChildren();
+  st.books.forEach(b=>{if(!BOOK_STATUSES[b.status])b.status='reading';});
+  return st;
+}
 
 function freshState(){
   return {
-    cards:[], records:[], library:[], seeded:true,
+    cards:[], records:[], library:[], books:[], children:initialChildren(), childEntries:[], seeded:true,
     pins:[
       {id:uid(),title:'House rules',body:''},
       {id:uid(),title:'Anger scripts',body:''},
@@ -240,19 +287,22 @@ function reopenCard(c){
 const SQUIG='<svg class="squig" viewBox="0 0 120 8" aria-hidden="true"><path d="M2 5 C 20 1, 40 8, 60 4 S 100 2, 118 5" fill="none" stroke="#67754C" stroke-width="2" stroke-linecap="round"/></svg>';
 
 /* ============ tabs & render ============ */
-function setTab(t){ tab=t; if(t==='today') selectedDay=todayISO(); if(t==='week') weekOffset=0; render(); window.scrollTo(0,0); }
+function setTab(t){closeSheet();tab=t;if(t==='today')selectedDay=todayISO();if(t==='week')weekOffset=0;if(t==='books')selectedBook=null;if(t==='children')selectedChild=null;render();window.scrollTo(0,0);}
 function render(){
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   const v=document.getElementById('view');
   if(tab==='today') v.innerHTML=renderToday();
   else if(tab==='week') v.innerHTML=renderWeek();
+  else if(tab==='books') v.innerHTML=selectedBook?renderBook():renderBooks();
+  else if(tab==='children') v.innerHTML=selectedChild?renderChild():renderChildren();
   else v.innerHTML=renderArchive();
 }
 
 /* ============ card row ============ */
 function cardRow(c,showDay){
   const dot=TYPE_DOT[c.type]||'#9A948A';
-  const sub=showDay?('<small>'+(c.date?fmtShort(c.date):'Idea Basket')+'</small>'):'';
+  const book=state.books.find(b=>b.id===c.bookId);
+  const sub=(showDay?('<small>'+(c.date?fmtShort(c.date):'Idea Basket')+'</small>'):'')+(c.type==='Reading'&&book?'<small>'+esc(book.title)+'</small>':'');
   return '<button class="card" onclick="openCard(\''+c.id+'\')">'
     +'<span class="dot" style="background:'+dot+'"></span>'
     +'<span class="t">'+esc(c.title||'(untitled)')+sub+'</span>'
@@ -360,20 +410,273 @@ function toggleRec(id){const el=document.getElementById('rec-'+id); if(el) el.hi
 function delRecord(id){ if(!confirm('Delete this day record? This cannot be undone.'))return; state.records=state.records.filter(r=>r.id!==id); persist(); render(); }
 
 /* ============ sheet plumbing ============ */
-function openSheet(html){ document.getElementById('sheetBody').innerHTML=html; const o=document.getElementById('overlay'); o.hidden=false; document.getElementById('sheet').scrollTop=0; }
+/* ============ books ============ */
+function bookById(id){return state.books.find(b=>b.id===id);}
+function childById(id){return state.children.find(c=>c.id===id);}
+function bookReadings(id){
+  return state.cards.filter(c=>c.type==='Reading'&&c.bookId===id&&c.date&&['Done','Partial'].includes(c.status))
+    .sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||b.id).localeCompare(a.createdAt||a.id));
+}
+function latestPosition(id){return bookReadings(id).find(c=>(c.readingPosition||'').trim())||null;}
+function setBookFilter(f){bookFilter=f;render();}
+function openBook(id){selectedBook=id;tab='books';closeSheet();render();window.scrollTo(0,0);}
+function renderBooks(){
+  let h='<div class="eyebrow">Семейная полка</div><h1 class="date">Наши книги</h1>'+SQUIG;
+  h+='<div class="sub" style="margin-top:8px">Читаем вместе. Каждая книга хранит историю ваших чтений.</div>';
+  h+='<div class="filters" aria-label="Полки">'+Object.entries(BOOK_STATUSES).map(([k,v])=>'<button class="'+(bookFilter===k?'on':'')+'" aria-pressed="'+(bookFilter===k)+'" onclick="setBookFilter(\''+k+'\')">'+v+' · '+state.books.filter(b=>b.status===k).length+'</button>').join('')+'</div>';
+  const books=state.books.filter(b=>b.status===bookFilter);
+  h+=books.length?books.map(b=>{
+    const last=latestPosition(b.id);
+    return '<button class="bookrow" onclick="openBook(\''+b.id+'\')"><span class="bookspine" aria-hidden="true"></span><span style="flex:1;min-width:0"><span class="booktitle">'+esc(b.title)+'</span><span class="bookmeta" style="display:block">'+esc([b.author,b.language].filter(Boolean).join(' · '))+'</span>'+(last?'<span class="bookmeta" style="display:block">Остановились: '+esc(last.readingPosition)+'</span>':'')+'</span><span class="quiet" aria-hidden="true">›</span></button>';
+  }).join(''):'<div class="empty">'+(bookFilter==='reading'?'Здесь будут книги, которые вы читаете вместе.':'На этой полке пока нет книг.')+'</div>';
+  h+='<div class="btnrow"><button class="btn primary" onclick="openBookEditor(null)">+ Добавить книгу</button></div>';
+  const unlinked=state.cards.filter(c=>c.type==='Reading'&&!c.bookId&&c.date&&['Done','Partial'].includes(c.status));
+  if(unlinked.length){
+    h+='<h2 class="sect">Чтения без книги · '+unlinked.length+'</h2><div class="sub">Откройте карточку и выберите книгу — запись появится в её истории.</div>';
+    h+=unlinked.sort((a,b)=>b.date.localeCompare(a.date)).map(c=>cardRow(c,true)).join('');
+  }
+  return h;
+}
+function renderBook(){
+  const b=bookById(selectedBook);
+  if(!b){selectedBook=null;return renderBooks();}
+  const readings=bookReadings(b.id), last=latestPosition(b.id);
+  let h='<button class="quietbtn" onclick="setTab(\'books\')">‹ Все книги</button><div class="eyebrow">'+BOOK_STATUSES[b.status]+'</div><h1 class="date">'+esc(b.title)+'</h1>'+SQUIG;
+  h+='<div class="bookmeta">'+esc([b.author,b.language].filter(Boolean).join(' · '))+'</div>';
+  if(last)h+='<div class="basket"><div class="quiet">Последнее записанное место · '+fmtShort(last.date)+'</div><div class="position">'+esc(last.readingPosition)+'</div></div>';
+  h+='<div class="btnrow"><button class="btn primary" onclick="continueReading(\''+b.id+'\')">'+(b.status==='finished'?'+ Ещё одно чтение':'Продолжить чтение')+'</button><button class="btn" onclick="openBookEditor(\''+b.id+'\')">О книге</button></div>';
+  h+='<h2 class="sect">Наши чтения'+(readings.length?' · '+readings.length:'')+'</h2>';
+  h+=readings.length?readings.map(c=>{
+    const notes=state.childEntries.filter(n=>n.cardId===c.id);
+    return '<article class="rec reading"><div class="reading-top"><button class="quietbtn" style="padding-left:0" onclick="openDay(\''+c.date+'\')">'+fmtLong(c.date)+'</button><span class="chip '+c.status+'">'+(c.status==='Done'?'Прочитали':'Читали немного')+'</span></div><div class="booktitle" style="font-size:18px">'+esc(c.title)+'</div>'+(c.readingPosition?'<div class="position">Остановились: '+esc(c.readingPosition)+'</div>':'')+(c.happened?'<div class="excerpt">'+esc(c.happened)+'</div>':'')+(c.childNotes?'<div class="excerpt"><span class="quiet">Детские отклики</span><br>'+esc(c.childNotes)+'</div>':'')+notes.map(n=>noteRow(n,true)).join('')+'<button class="btn small" onclick="openCard(\''+c.id+'\')">Открыть карточку</button></article>';
+  }).join(''):'<div class="empty">После чтения отметьте карточку Reading выполненной.<br>Она появится здесь и останется в своём дне.</div>';
+  const plans=state.cards.filter(c=>c.type==='Reading'&&c.bookId===b.id&&c.status==='Planned');
+  if(plans.length)h+='<h2 class="sect">Запланировано</h2>'+plans.map(c=>cardRow(c,true)).join('');
+  h+='<h2 class="sect">Заметки о книге</h2>'+(b.notes?'<div class="paper">'+esc(b.notes)+'</div>':'<div class="quiet">Мысли о книге, любимые строки, идеи для обсуждения.</div>')+'<div class="btnrow"><button class="btn small" onclick="openBookEditor(\''+b.id+'\')">Записать мысль</button></div>';
+  return h;
+}
+function continueReading(id){
+  const b=bookById(id);if(!b)return;
+  openCardEditor(null,todayISO(),{title:'Чтение · '+b.title,type:'Reading',bookId:id});
+}
+function openBookEditor(id){
+  const b=id?bookById(id):null;
+  let h='<h3 class="sheettitle">'+(b?'О книге':'Новая книга')+'</h3>';
+  h+='<div class="field"><label for="b-title">Название</label><input type="text" id="b-title" value="'+esc(b?b.title:'')+'"></div>';
+  h+='<div class="field"><label for="b-author">Автор</label><input type="text" id="b-author" value="'+esc(b?b.author:'')+'"></div>';
+  h+='<div class="field"><label for="b-language">Язык</label><input type="text" id="b-language" placeholder="Например: русский, italiano, Cymraeg" value="'+esc(b?b.language:'')+'"></div>';
+  h+='<div class="field"><label for="b-status">Полка</label><select id="b-status">'+Object.entries(BOOK_STATUSES).map(([k,v])=>'<option value="'+k+'"'+((b?b.status:bookFilter)===k?' selected':'')+'>'+v+'</option>').join('')+'</select></div>';
+  h+='<div class="field"><label for="b-notes">Заметки о книге</label><textarea id="b-notes" style="min-height:120px">'+esc(b?b.notes:'')+'</textarea></div>';
+  h+='<div class="btnrow"><button class="btn primary" onclick="saveBook(\''+(b?b.id:'')+'\')">Сохранить</button><button class="btn" onclick="closeSheet()">Отмена</button>'+(b?'<button class="quietbtn danger" onclick="deleteBook(\''+b.id+'\')">Убрать с полки</button>':'')+'</div>';
+  openSheet(h);
+}
+function saveBook(id){
+  const g=x=>document.getElementById(x).value;
+  const title=g('b-title').trim();if(!title){toast('Как называется книга?');return;}
+  const data={title,author:g('b-author').trim(),language:g('b-language').trim(),status:g('b-status'),notes:g('b-notes')};
+  if(id)Object.assign(bookById(id),data);
+  else {id=uid();state.books.push(Object.assign({id},data));}
+  persist();openBook(id);toast('Книга на полке');
+}
+function deleteBook(id){
+  if(!confirm('Убрать книгу с полки? Карточки дня и детские записи сохранятся.'))return;
+  state.books=state.books.filter(b=>b.id!==id);
+  state.cards.forEach(c=>{if(c.bookId===id)c.bookId=null;});
+  state.childEntries.forEach(n=>{if(n.bookId===id)n.bookId=null;});
+  selectedBook=null;persist();closeSheet();render();
+}
+function readingFields(prefix,c){
+  const id=c.bookId||'';
+  const last=id?latestPosition(id):null;
+  return '<div id="'+prefix+'-reading"'+(c.type==='Reading'?'':' hidden')+'><div class="field"><label for="'+prefix+'-book">Книга</label><select id="'+prefix+'-book" onchange="updateBookFields(\''+prefix+'\')"><option value="">Без книги</option>'+state.books.map(b=>'<option value="'+b.id+'"'+(id===b.id?' selected':'')+'>'+esc(b.title)+'</option>').join('')+'<option value="__new">+ Новая книга…</option></select></div>'
+    +'<div id="'+prefix+'-new-book" class="inline-new" hidden><div class="field"><label for="'+prefix+'-new-title">Название новой книги</label><input type="text" id="'+prefix+'-new-title"></div><div class="formpair"><div class="field"><label for="'+prefix+'-new-author">Автор</label><input type="text" id="'+prefix+'-new-author"></div><div class="field"><label for="'+prefix+'-new-language">Язык</label><input type="text" id="'+prefix+'-new-language"></div></div></div>'
+    +'<div id="'+prefix+'-last-place" class="quiet">'+(last?'Ранее: '+esc(last.readingPosition)+' · '+fmtShort(last.date):'')+'</div>'
+    +'<div class="field"><label for="'+prefix+'-position">Где остановились · необязательно</label><input type="text" id="'+prefix+'-position" value="'+esc(c.readingPosition||'')+'" placeholder="Глава, страница или последние слова"></div></div>';
+}
+function updateReadingFields(prefix){
+  document.getElementById(prefix+'-reading').hidden=document.getElementById(prefix+'-type').value!=='Reading';
+}
+function updateBookFields(prefix){
+  const id=document.getElementById(prefix+'-book').value;
+  document.getElementById(prefix+'-new-book').hidden=id!=='__new';
+  const last=latestPosition(id);
+  document.getElementById(prefix+'-last-place').textContent=last?'Ранее: '+last.readingPosition+' · '+fmtShort(last.date):'';
+}
+function readBookFields(prefix){
+  if(document.getElementById(prefix+'-type').value!=='Reading')return {bookId:null,readingPosition:''};
+  const g=x=>document.getElementById(prefix+'-'+x).value;
+  let bookId=g('book')||null;
+  if(bookId==='__new'){
+    const title=g('new-title').trim();
+    if(!title){toast('Укажите название новой книги');return null;}
+    bookId=uid();
+    state.books.push({id:bookId,title,author:g('new-author').trim(),language:g('new-language').trim(),status:'reading',notes:''});
+  }
+  return {bookId,readingPosition:g('position').trim()};
+}
+
+/* ============ children's notebooks ============ */
+function openChild(id){selectedChild=id;noteFilter='all';tab='children';closeSheet();render();window.scrollTo(0,0);}
+function setNoteFilter(kind){noteFilter=kind;render();}
+function renderChildren(){
+  let h='<div class="eyebrow">Детские тетради</div><h1 class="date">Наши дети</h1>'+SQUIG+'<div class="sub" style="margin-top:8px">Их слова, вопросы, работы и маленькие открытия.</div>';
+  h+=state.children.map(c=>'<button class="bookrow" onclick="openChild(\''+c.id+'\')"><span class="child-avatar" aria-hidden="true">'+esc(c.name.slice(0,1))+'</span><span style="flex:1;min-width:0"><span class="booktitle">'+esc(c.name)+'</span><span class="bookmeta" style="display:block">'+state.childEntries.filter(n=>n.childId===c.id).length+' записей в тетради</span></span><span class="quiet" aria-hidden="true">›</span></button>').join('');
+  h+='<div class="btnrow"><button class="btn" onclick="openChildEditor(null)">+ Добавить ребёнка</button></div>';
+  return h;
+}
+function renderChild(){
+  const c=childById(selectedChild);if(!c){selectedChild=null;return renderChildren();}
+  let h='<button class="quietbtn" onclick="setTab(\'children\')">‹ Все дети</button><div class="eyebrow">Личная тетрадь</div><h1 class="date">'+esc(c.name)+'</h1>'+SQUIG;
+  h+='<h2 class="sect">О ребёнке сейчас</h2>'+(c.about?'<div class="notetext">'+esc(c.about)+'</div>':'<div class="quiet">Что любит, чем увлечён, что сейчас даётся легко или требует помощи.</div>');
+  h+='<div class="btnrow"><button class="btn primary" onclick="openChildNote(null,\''+c.id+'\')">+ Запись в тетрадь</button><button class="btn" onclick="openChildEditor(\''+c.id+'\')">О ребёнке</button></div>';
+  h+='<div class="filters" aria-label="Виды записей">'+['all',...NOTE_KINDS].map(k=>'<button class="'+(noteFilter===k?'on':'')+'" aria-pressed="'+(noteFilter===k)+'" onclick="setNoteFilter(\''+k+'\')">'+(k==='all'?'Все':k)+'</button>').join('')+'</div>';
+  const notes=state.childEntries.filter(n=>n.childId===c.id&&(noteFilter==='all'||n.kind===noteFilter)).sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
+  h+=notes.length?notes.map(n=>noteRow(n,false)).join(''):'<div class="empty">Здесь будут сохраняться записи о '+esc(c.name)+'.<br>Их можно добавлять здесь или в карточке дня.</div>';
+  return h;
+}
+function noteRow(n,compact){
+  const child=childById(n.childId), card=n.cardId?byId(n.cardId):null, book=bookById(card?card.bookId:n.bookId);
+  return '<article class="'+(compact?'notebook-row':'rec')+'"><div class="reading-top"><span class="quiet">'+esc(compact&&child?child.name+' · '+n.kind:n.kind)+' · '+fmtShort(n.date)+'</span><button class="quietbtn" onclick="openChildNote(\''+n.id+'\')">Изменить</button></div>'
+    +(n.text?'<div class="notetext">'+esc(n.text)+'</div>':'')+(n.image?'<img class="noteimage" src="'+safeImage(n.image)+'" alt="Работа ребёнка'+(child?' — '+esc(child.name):'')+'">':'')
+    +'<div class="btnrow" style="margin-bottom:0">'+(compact&&child?'<button class="quietbtn" onclick="openChild(\''+child.id+'\')">Тетрадь '+esc(child.name)+'</button>':'')+(card?'<button class="quietbtn" onclick="openCard(\''+card.id+'\')">Из карточки: '+esc(card.title)+'</button>':'')+(book?'<button class="quietbtn" onclick="openBook(\''+book.id+'\')">'+esc(book.title)+'</button>':'')+(!compact?'<button class="quietbtn" onclick="openDay(\''+n.date+'\')">День</button>':'')+'</div></article>';
+}
+function openChildEditor(id){
+  const c=id?childById(id):null;
+  openSheet('<h3 class="sheettitle">'+(c?'О ребёнке':'Новая тетрадь')+'</h3><div class="field"><label for="ch-name">Имя</label><input type="text" id="ch-name" value="'+esc(c?c.name:'')+'"></div><div class="field"><label for="ch-about">О ребёнке сейчас</label><textarea id="ch-about" style="min-height:180px">'+esc(c?c.about:'')+'</textarea></div><div class="btnrow"><button class="btn primary" onclick="saveChild(\''+(c?c.id:'')+'\')">Сохранить</button><button class="btn" onclick="closeSheet()">Отмена</button></div>');
+}
+function saveChild(id){
+  const name=document.getElementById('ch-name').value.trim();if(!name){toast('Как зовут ребёнка?');return;}
+  const about=document.getElementById('ch-about').value;
+  if(id)Object.assign(childById(id),{name,about});
+  else {id=uid();state.children.push({id,name,about});}
+  persist();openChild(id);
+}
+function childOptions(id){return state.children.map(c=>'<option value="'+c.id+'"'+(c.id===id?' selected':'')+'>'+esc(c.name)+'</option>').join('');}
+function kindOptions(kind){return NOTE_KINDS.map(k=>'<option'+(k===kind?' selected':'')+'>'+k+'</option>').join('');}
+function openChildNote(id,childId){
+  const n=id?state.childEntries.find(x=>x.id===id):null;
+  if(id&&!n)return;
+  editorNoteImage=n?n.image||'':'';
+  let h='<h3 class="sheettitle">'+(n?'Запись в тетради':'Новая запись')+'</h3>';
+  h+='<div class="formpair"><div class="field"><label for="n-child">Ребёнок</label><select id="n-child">'+childOptions(n?n.childId:childId||selectedChild)+'</select></div><div class="field"><label for="n-kind">Что сохраним</label><select id="n-kind">'+kindOptions(n?n.kind:'Наблюдение')+'</select></div></div>';
+  h+='<div class="field"><label for="n-date">Дата</label><input type="date" id="n-date" value="'+esc(n?n.date:todayISO())+'"></div>';
+  h+='<div class="field"><label for="n-text">Запись</label><textarea id="n-text" style="min-height:140px" placeholder="Слова ребёнка, вопрос, пересказ, новое умение…">'+esc(n?n.text:'')+'</textarea></div>';
+  h+='<div class="field"><label for="n-book">Книга · необязательно</label><select id="n-book"'+(n&&n.cardId?' disabled':'')+'><option value="">Без книги</option>'+state.books.map(b=>'<option value="'+b.id+'"'+(n&&b.id===n.bookId?' selected':'')+'>'+esc(b.title)+'</option>').join('')+'</select></div>';
+  h+='<div class="field"><label for="n-photo">Рисунок или работа · фото</label><input type="file" id="n-photo" accept="image/jpeg,image/png,image/webp" onchange="loadNoteImage(this,-1)"><div id="n-photo-preview">'+imagePreview(editorNoteImage,-1)+'</div></div>';
+  if(n&&n.cardId)h+='<div class="quiet">Запись связана с карточкой дня. Книга меняется в самой карточке.</div>';
+  h+='<div class="btnrow"><button class="btn primary" onclick="saveChildNote(\''+(n?n.id:'')+'\')">Сохранить</button><button class="btn" onclick="closeSheet()">Отмена</button>'+(n?'<button class="quietbtn danger" onclick="deleteChildNote(\''+n.id+'\')">Удалить запись</button>':'')+'</div>';
+  openSheet(h);
+}
+function safeImage(s){return /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s)?s:'';}
+function imagePreview(src,index){
+  return src?'<img class="noteimage" src="'+safeImage(src)+'" alt="Прикреплённая работа"><button class="quietbtn danger" onclick="removeNoteImage('+index+')">Убрать фото</button>':'';
+}
+async function compressPhoto(file){
+  if(file.size>12*1024*1024)throw new Error('Выберите фото меньше 12 МБ.');
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Подойдут JPG, PNG и WebP.');
+  const raw=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('Не удалось открыть фото.'));r.readAsDataURL(file);});
+  const img=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(new Error('Не удалось прочитать изображение.'));i.src=raw;});
+  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+  let ratio=Math.min(1,1100/Math.max(img.width,img.height)),result='';
+  for(let pass=0;pass<5;pass++){
+    canvas.width=Math.max(1,Math.round(img.width*ratio));canvas.height=Math.max(1,Math.round(img.height*ratio));
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    result=canvas.toDataURL('image/jpeg',.78);
+    if(result.length<=240000)return result;
+    ratio*=.78;
+  }
+  throw new Error('Фото слишком большое. Попробуйте уменьшить его.');
+}
+async function loadNoteImage(input,index){
+  const file=input.files[0];if(!file)return;
+  const target=document.getElementById(index<0?'n-photo-preview':'cn-photo-'+index);
+  const entry=index<0?null:editorEntries[index];
+  imageJobs++;target.textContent='Готовлю фото…';
+  try{
+    const photo=await compressPhoto(file);
+    if(!target.isConnected)return;
+    if(index<0)editorNoteImage=photo;else entry.image=photo;
+    target.innerHTML=imagePreview(photo,index);
+  }catch(e){if(target.isConnected)target.innerHTML=imagePreview(index<0?editorNoteImage:entry.image,index);toast(e.message);}
+  finally{imageJobs--;input.value='';}
+}
+function removeNoteImage(index){
+  if(index<0)editorNoteImage='';else editorEntries[index].image='';
+  document.getElementById(index<0?'n-photo-preview':'cn-photo-'+index).innerHTML='';
+}
+function saveChildNote(id){
+  if(imageJobs){toast('Фото ещё готовится');return;}
+  const g=x=>document.getElementById(x).value;
+  const text=g('n-text').trim(),childId=g('n-child'),date=g('n-date');
+  if(!childId||!date){toast('Выберите ребёнка и дату');return;}
+  if(!text&&!editorNoteImage){toast('Добавьте запись или фото');return;}
+  const n=id?state.childEntries.find(x=>x.id===id):null;
+  const card=n&&n.cardId?byId(n.cardId):null;
+  const data={childId,date,kind:g('n-kind'),text,image:editorNoteImage,bookId:card?card.bookId:g('n-book')||null};
+  if(n)Object.assign(n,data);
+  else state.childEntries.push(Object.assign({id:uid(),cardId:null},data));
+  if(card)reopenCard(card);
+  persist();closeSheet();render();toast('В тетради');
+}
+function deleteChildNote(id){
+  if(!confirm('Удалить эту запись из детской тетради?'))return;
+  const n=state.childEntries.find(n=>n.id===id),card=n&&n.cardId?byId(n.cardId):null;
+  if(card)reopenCard(card);
+  state.childEntries=state.childEntries.filter(n=>n.id!==id);persist();closeSheet();render();
+}
+function collectEditorEntries(){
+  editorEntries.forEach((n,i)=>{
+    const row=document.getElementById('cn-'+i);if(!row)return;
+    n.childId=document.getElementById('cn-child-'+i).value;
+    n.kind=document.getElementById('cn-kind-'+i).value;
+    n.text=document.getElementById('cn-text-'+i).value;
+  });
+}
+function editorEntryRows(){
+  return editorEntries.map((n,i)=>'<div class="notebook-row" id="cn-'+i+'"><div class="formpair"><div class="field"><label for="cn-child-'+i+'">Ребёнок</label><select id="cn-child-'+i+'">'+childOptions(n.childId)+'</select></div><div class="field"><label for="cn-kind-'+i+'">Что сохраним</label><select id="cn-kind-'+i+'">'+kindOptions(n.kind)+'</select></div></div><div class="field"><label for="cn-text-'+i+'">Запись в тетрадь</label><textarea id="cn-text-'+i+'">'+esc(n.text)+'</textarea></div><div class="field"><label for="cn-file-'+i+'">Фото работы</label><input type="file" id="cn-file-'+i+'" accept="image/jpeg,image/png,image/webp" onchange="loadNoteImage(this,'+i+')"><div id="cn-photo-'+i+'">'+imagePreview(n.image,i)+'</div></div><button class="quietbtn" onclick="removeEditorEntry('+i+')">'+(n.cardId?'Оставить только в тетради':'Убрать запись')+'</button></div>').join('');
+}
+function addEditorEntry(){
+  if(imageJobs){toast('Фото ещё готовится');return;}
+  collectEditorEntries();editorEntries.push({id:uid(),childId:state.children[0]?state.children[0].id:'',kind:'Наблюдение',text:'',image:''});
+  document.getElementById('f-entries').innerHTML=editorEntryRows();
+}
+function removeEditorEntry(i){
+  if(imageJobs){toast('Фото ещё готовится');return;}
+  collectEditorEntries();editorEntries.splice(i,1);document.getElementById('f-entries').innerHTML=editorEntryRows();
+}
+function saveEditorEntries(card){
+  const editedIds=new Set(editorEntries.map(n=>n.id));
+  state.childEntries.forEach(n=>{if(n.cardId===card.id&&!editedIds.has(n.id))n.cardId=null;});
+  state.childEntries=state.childEntries.filter(n=>n.cardId!==card.id);
+  editorEntries.filter(n=>(n.text||'').trim()||n.image).forEach(n=>{
+    state.childEntries.push(Object.assign({},n,{cardId:card.id,bookId:card.bookId||null,date:card.date||n.date||todayISO(),text:n.text.trim()}));
+  });
+}
+
+function openSheet(html){
+  document.getElementById('sheetBody').innerHTML=html;
+  document.getElementById('sheetBody').querySelectorAll('.field').forEach(f=>{
+    const label=f.querySelector('label'),input=f.querySelector('input,textarea,select');
+    if(label&&input&&input.id)label.htmlFor=input.id;
+  });
+  const o=document.getElementById('overlay');o.hidden=false;document.getElementById('sheet').scrollTop=0;
+}
 function closeSheet(){ document.getElementById('overlay').hidden=true; }
 document.getElementById('overlay').addEventListener('click',e=>{ if(e.target.id==='overlay') closeSheet(); });
+document.getElementById('overlay').addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
 
 /* ============ card editor ============ */
 function openCard(id){ openCardEditor(id,null); }
 function openCardEditor(id,presetDate,prefill){
   const c=id?byId(id):null;
   const p=prefill||null;
+  editorEntries=c?state.childEntries.filter(n=>n.cardId===c.id).map(n=>Object.assign({},n)):[];
   editorStatus=c?c.status:'Planned';
   const date=c? (c.date||'') : (presetDate||'');
   let h='<h3 class="sheettitle">'+(c?'Card':'New card')+'</h3>';
   h+='<div class="field"><label>Title</label><input type="text" id="f-title" value="'+esc(c?c.title:(p?p.title:''))+'" placeholder="e.g. Read-aloud, clay dishes, watermelon sorbet…"></div>';
-  h+='<div class="field"><label>Type</label><select id="f-type">'+TYPES.map(t=>'<option'+((c?c.type:(p?p.type:'Other'))===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
+  h+='<div class="field"><label>Type</label><select id="f-type" onchange="updateReadingFields(\'f\')">'+TYPES.map(t=>'<option'+((c?c.type:(p?p.type:'Other'))===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
+  h+=readingFields('f',c||p||{});
   h+='<div class="field"><label>Status</label><div class="statusrow">'+STATUSES.map(s=>'<button class="chip '+s+(editorStatus===s?' sel':'')+'" data-st="'+s+'" onclick="pickStatus(this)">'+s+'</button>').join('')+'</div></div>';
   h+='<div class="field"><label>Day</label><input type="date" id="f-date" value="'+esc(date)+'">'
     +'<div class="btnrow" style="margin:8px 0 0"><button class="btn small" onclick="setDateField(1)">Tomorrow</button><button class="btn small" onclick="setDateField(0)">Today</button><button class="btn small" onclick="setDateField(null)">Idea Basket</button></div>'
@@ -381,7 +684,8 @@ function openCardEditor(id,presetDate,prefill){
   h+='<div class="field"><label>Details / plan</label><textarea id="f-details" placeholder="What is the idea?">'+esc(c?c.details:(p?p.details:''))+'</textarea></div>';
   h+='<div class="field"><label>Materials</label><textarea id="f-materials" placeholder="Books, pages, supplies, links…">'+esc(c?c.materials:(p?p.materials:''))+'</textarea></div>';
   h+='<div class="field"><label>What actually happened</label><textarea id="f-happened" placeholder="Filled in during or after…">'+esc(c?c.happened:'')+'</textarea></div>';
-  h+='<div class="field"><label>Child notes</label><textarea id="f-childnotes" placeholder="Eldest: … / Daughter: … / Baby: …">'+esc(c?c.childNotes:'')+'</textarea></div>';
+  h+='<div class="field"><label>Общие заметки о детях</label><textarea id="f-childnotes" placeholder="Общий разговор, наблюдение о всех…">'+esc(c?c.childNotes:'')+'</textarea></div>';
+  h+='<h2 class="sect">В детские тетради</h2><div class="sub">Запись сохранится у выбранного ребёнка и будет связана с этим занятием.</div><div id="f-entries">'+editorEntryRows()+'</div><button class="btn small" onclick="addEditorEntry()">+ Запись о ребёнке</button>';
   h+='<div class="btnrow" style="margin-bottom:0"><button class="quietbtn" onclick="saveToLibrary()">📚 Save to Library</button></div>';
   h+='<div class="btnrow"><button class="btn primary" onclick="saveCard(\''+(c?c.id:'')+'\')">Save</button><button class="btn" onclick="closeSheet()">Cancel</button>'
     +(c?'<button class="btn danger" style="margin-left:auto" onclick="delCard(\''+c.id+'\')">Delete</button>':'')+'</div>';
@@ -394,22 +698,33 @@ function setDateField(offset){
   const d=new Date(); d.setDate(d.getDate()+offset); f.value=iso(d);
 }
 function saveCard(id){
+  if(imageJobs){toast('Фото ещё готовится');return;}
   const g=x=>document.getElementById(x).value;
   const title=g('f-title').trim();
   if(!title){ toast('A title helps you find it later'); return; }
-  const data={title, type:g('f-type'), status:editorStatus, date:g('f-date')||null, details:g('f-details'), materials:g('f-materials'), happened:g('f-happened'), childNotes:g('f-childnotes')};
-  if(id){ const c=byId(id); reopenCard(c); Object.assign(c,data); }
-  else { state.cards.push(Object.assign({id:uid(),archived:false},data)); }
+  collectEditorEntries();
+  if(editorEntries.some(n=>n.cardId&&!(n.text||'').trim()&&!n.image)){toast('В записи тетради нужен текст или фото. Можно оставить её только в тетради.');return;}
+  const reading=readBookFields('f');if(!reading)return;
+  const data=Object.assign({title, type:g('f-type'), status:editorStatus, date:g('f-date')||null, details:g('f-details'), materials:g('f-materials'), happened:g('f-happened'), childNotes:g('f-childnotes')},reading);
+  let c;
+  if(id){ c=byId(id); reopenCard(c); Object.assign(c,data); }
+  else { c=Object.assign({id:uid(),createdAt:new Date().toISOString(),archived:false},data);state.cards.push(c); }
+  saveEditorEntries(c);
   persist(); closeSheet(); render();
 }
-function delCard(id){ if(!confirm('Delete this card?'))return; state.cards=state.cards.filter(c=>c.id!==id); persist(); closeSheet(); render(); }
+function delCard(id){
+  if(!confirm('Delete this card? Записи в детских тетрадях сохранятся.'))return;
+  state.childEntries.forEach(n=>{if(n.cardId===id)n.cardId=null;});
+  state.cards=state.cards.filter(c=>c.id!==id);persist();closeSheet();render();
+}
 
 /* ============ + Happened ============ */
 function openHappened(){
   let h='<h3 class="sheettitle">Something happened ✳</h3><div class="sub">Unplanned learning counts — often it\'s the best part.</div>';
   h+='<div class="field"><label>What happened?</label><textarea id="h-note" placeholder="e.g. Baby played куку for ten minutes; eldest read the shop sign by himself…"></textarea></div>';
   h+='<div class="field"><label>Title (optional)</label><input type="text" id="h-title" placeholder="Short name for the review"></div>';
-  h+='<div class="field"><label>Type</label><select id="h-type">'+TYPES.map(t=>'<option'+(t==='Child note'?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
+  h+='<div class="field"><label>Type</label><select id="h-type" onchange="updateReadingFields(\'h\')">'+TYPES.map(t=>'<option'+(t==='Child note'?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
+  h+=readingFields('h',{});
   h+='<div class="btnrow"><button class="btn primary" onclick="saveHappened()">Save</button><button class="btn" onclick="closeSheet()">Cancel</button></div>';
   openSheet(h);
 }
@@ -418,7 +733,8 @@ function saveHappened(){
   let title=document.getElementById('h-title').value.trim();
   if(!note && !title){ toast('Write a word or two first'); return; }
   if(!title) title=note.length>42? note.slice(0,42)+'…' : note;
-  state.cards.push({id:uid(),title,type:document.getElementById('h-type').value,status:'Done',date:selectedDay,details:'',materials:'',happened:note,childNotes:'',archived:false});
+  const reading=readBookFields('h');if(!reading)return;
+  state.cards.push(Object.assign({id:uid(),createdAt:new Date().toISOString(),title,type:document.getElementById('h-type').value,status:'Done',date:selectedDay,details:'',materials:'',happened:note,childNotes:'',archived:false},reading));
   persist(); closeSheet(); render(); toast('Kept ✓');
 }
 
@@ -591,7 +907,10 @@ function snapToday(){
     else if(dec==='basket'){status='Moved';movedTo='Idea Basket';}
     else if(dec==='skip'){status='Skipped';}
     else if(dec&&dec.startsWith('day:')){status='Moved';movedTo=fmtLong(dec.slice(4));}
-    return {id:c.id,title:c.title,type:c.type,status,movedTo,details:c.details||'',materials:c.materials||'',happened:c.happened||'',childNotes:c.childNotes||''};
+    const childBits=state.childEntries.filter(n=>n.cardId===c.id).map(n=>{
+      const child=childById(n.childId);return (child?child.name+': ':'')+n.kind+(n.text?' — '+n.text:'')+(n.image?' [фото работы]':'');
+    });
+    return {id:c.id,title:c.title,type:c.type,status,movedTo,details:c.details||'',materials:c.materials||'',happened:c.happened||'',childNotes:[c.childNotes||'',...childBits].filter(Boolean).join('\n'),bookId:c.bookId||null,readingPosition:c.readingPosition||''};
   });
 }
 function buildReview(snaps){
@@ -678,18 +997,13 @@ function doImport(){
   try{ obj=JSON.parse(raw); }catch(e){ toast('That doesn\'t look like a Hearth backup'); return; }
   if(!obj||!Array.isArray(obj.cards)){ toast('That doesn\'t look like a Hearth backup'); return; }
   if(!confirm('Replace everything in the app with this backup?')) return;
-  state=obj; persist(); closeSheet(); render(); toast('Restored ✓');
+  state=normalizeState(obj);selectedBook=null;selectedChild=null;persist();closeSheet();render();toast('Restored ✓');
 }
 
 /* ============ boot ============ */
 (async function(){
   const loaded=await Store.load();
-  state=loaded||freshState();
-  if(!state.pins) state.pins=[];
-  if(!state.library) state.library=[];
-  if(!state.defaults) state.defaults=[];
-  if(!state.records) state.records=[];
-  if(!state.cards) state.cards=[];
+  state=normalizeState(loaded||freshState());
   render();
   persist();
   if('serviceWorker' in navigator && location.protocol==='https:'){
