@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -86,8 +86,8 @@ h2.sect{font-family:var(--serif);font-weight:normal;font-size:19px;margin:22px 0
 .paper{white-space:pre-wrap;font-family:var(--serif);font-size:15.5px;line-height:26px;background:repeating-linear-gradient(transparent,transparent 25px,var(--line) 25px,var(--line) 26px);padding:0 2px;margin:12px 0}
 
 /* tabs */
-#tabs{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:6px;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
-#tabs button{font-family:var(--serif);font-size:14px;padding:10px 6px;flex:1;max-width:110px;border-radius:12px;color:var(--ink2);border-bottom:2px solid transparent}
+#tabs{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:2px;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+#tabs button{font-family:var(--serif);font-size:13px;padding:12px 4px;flex:1;max-width:94px;min-width:0;border-radius:12px;color:var(--ink2);border-bottom:2px solid transparent}
 #tabs button.on{color:var(--ink);border-bottom-color:var(--moss)}
 
 /* sheet / modal */
@@ -147,6 +147,42 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:16px 0}
   #sheet{animation:up .18s ease-out}
   @keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
 }
+/* Alisa's garden */
+#app.garden-mode,#overlay.garden-mode,#tabs.garden-mode{
+  --paper:#F9EBEE;--paper2:#FFF9F7;--ink:#503A40;--ink2:#795F66;
+  --line:#E8CFD5;--moss:#9A5E73;--moss-soft:#F0DDE4;--stone-soft:#F2DEE5;
+}
+#app.garden-mode{background:var(--paper);border-radius:0 0 22px 22px;overflow-wrap:anywhere}
+.garden-heading{text-align:center;padding:24px 4px 14px}
+.garden-heading h1{font-size:32px;color:var(--moss)}
+.garden-flowers{color:var(--moss);letter-spacing:.7em;font-size:18px;margin-bottom:14px;padding-left:.7em}
+.garden-welcome{color:var(--ink2);font-size:14px;line-height:1.55;margin:8px 0 16px}
+.garden-doors{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.garden-door{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:180px;padding:20px 12px;background:var(--paper2);border:1px solid var(--line);outline:1px dashed var(--line);outline-offset:-7px;border-radius:22px;text-align:center;box-shadow:0 3px 0 #EEDBE2}
+.garden-door:active{background:var(--moss-soft)}
+.garden-icon{font-size:28px;margin-bottom:3px}
+.garden-door-title{font-family:var(--serif);font-size:20px;line-height:1.25;color:var(--ink)}
+.garden-door-hint{font-size:12px;line-height:1.6;color:var(--ink2);max-width:180px}
+.garden-count{font-size:12px;color:var(--moss)}
+.garden-quick{justify-content:center;margin:24px 0 10px}
+.garden-footer{text-align:center;color:var(--moss);padding:16px 0;font-size:22px}
+.garden-folder{display:flex;gap:14px;align-items:center;width:100%;background:var(--paper2);border:1px solid var(--line);border-radius:16px;text-align:left;padding:16px;margin:12px 0}
+.garden-folder-info{flex:1;min-width:0}
+.garden-folder-icon{font-size:24px;flex:none}
+.garden-cover{width:54px;height:68px;object-fit:cover;border-radius:8px;flex:none}
+.garden-resume{display:block;font-size:13px;color:var(--ink2);margin-top:8px;line-height:1.45;overflow-wrap:anywhere}
+.garden-bookmark{background:var(--paper2);border-left:3px solid var(--moss);padding:12px 16px;margin:18px 0;border-radius:0 12px 12px 0}
+.garden-bookmark .notetext{margin-bottom:0}
+.garden-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}
+.garden-photo{text-align:left;min-width:0}
+.garden-photo img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px}
+.garden-photo span{display:block;font-size:12px;line-height:1.5;margin-top:5px;color:var(--ink2);overflow-wrap:anywhere}
+.garden-large-photo{display:block;width:auto;max-width:100%;height:auto;margin:0 auto;border-radius:12px}
+.garden-photo-edit{padding:12px 0;border-bottom:1px solid var(--line)}
+.garden-photo-thumb{display:block;width:100%;max-width:200px;max-height:180px;object-fit:contain;border-radius:10px}
+.garden-materials a{color:var(--moss);text-decoration:underline;overflow-wrap:anywhere}
+@media(max-width:360px){.garden-doors{gap:10px}.garden-door{padding:18px 10px}.garden-door-title{font-size:18px}.garden-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 </style>
 </head>
 <body>
@@ -163,7 +199,8 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:16px 0}
   <button data-tab="week" onclick="setTab('week')">Week</button>
   <button data-tab="books" onclick="setTab('books')">Книги</button>
   <button data-tab="children" onclick="setTab('children')">Дети</button>
-  <button data-tab="archive" onclick="setTab('archive')">Archive</button>
+  <button data-tab="garden" onclick="setTab('garden')">Сад</button>
+  <button data-tab="archive" onclick="setTab('archive')">Архив</button>
 </nav>
 <div id="overlay" hidden>
   <div id="sheet" role="dialog" aria-modal="true"><div id="sheetBody"></div></div>
@@ -218,20 +255,23 @@ let weekOffset=0;
 let editorStatus='Planned';
 let selectedBook=null, bookFilter='reading';
 let selectedChild=null, noteFilter='all';
+let gardenSection=null, selectedGardenFolder=null, gardenPhotoDrafts={};
 let editorEntries=[], editorNoteImage='', imageJobs=0;
 const BOOK_STATUSES={reading:'Читаем',wishlist:'Хотим прочитать',finished:'Закончили',paused:'Отложили'};
 const NOTE_KINDS=['Высказывание','Вопрос','Пересказ','Работа','Умение','Наблюдение'];
 function initialChildren(){return ['Ллеу','Алау','Эмрис'].map(name=>({id:uid(),name,about:''}));}
 function normalizeState(st){
-  ['cards','records','library','pins','defaults','books','childEntries'].forEach(k=>{if(!Array.isArray(st[k]))st[k]=[];});
+  ['cards','records','library','pins','defaults','books','childEntries','gardenFolders','gardenEntries'].forEach(k=>{if(!Array.isArray(st[k]))st[k]=[];});
   if(!Array.isArray(st.children))st.children=initialChildren();
   st.books.forEach(b=>{if(!BOOK_STATUSES[b.status])b.status='reading';});
+  st.gardenFolders.forEach(f=>{if(!GARDEN_SECTIONS[f.section])f.section='later';if(!GARDEN_STATUSES[f.status])f.status='idea';if(!Array.isArray(f.photos))f.photos=[];});
+  st.gardenEntries.forEach(n=>{if(!Array.isArray(n.photos))n.photos=[];});
   return st;
 }
 
 function freshState(){
   return {
-    cards:[], records:[], library:[], books:[], children:initialChildren(), childEntries:[], seeded:true,
+    cards:[], records:[], library:[], books:[], children:initialChildren(), childEntries:[], gardenFolders:[], gardenEntries:[], seeded:true,
     pins:[
       {id:uid(),title:'House rules',body:''},
       {id:uid(),title:'Anger scripts',body:''},
@@ -287,14 +327,16 @@ function reopenCard(c){
 const SQUIG='<svg class="squig" viewBox="0 0 120 8" aria-hidden="true"><path d="M2 5 C 20 1, 40 8, 60 4 S 100 2, 118 5" fill="none" stroke="#67754C" stroke-width="2" stroke-linecap="round"/></svg>';
 
 /* ============ tabs & render ============ */
-function setTab(t){closeSheet();tab=t;if(t==='today')selectedDay=todayISO();if(t==='week')weekOffset=0;if(t==='books')selectedBook=null;if(t==='children')selectedChild=null;render();window.scrollTo(0,0);}
+function setTab(t){closeSheet();tab=t;if(t==='today')selectedDay=todayISO();if(t==='week')weekOffset=0;if(t==='books')selectedBook=null;if(t==='children')selectedChild=null;if(t==='garden'){gardenSection=null;selectedGardenFolder=null;}render();window.scrollTo(0,0);}
 function render(){
+  ['app','overlay','tabs'].forEach(id=>document.getElementById(id).classList.toggle('garden-mode',tab==='garden'));
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   const v=document.getElementById('view');
   if(tab==='today') v.innerHTML=renderToday();
   else if(tab==='week') v.innerHTML=renderWeek();
   else if(tab==='books') v.innerHTML=selectedBook?renderBook():renderBooks();
   else if(tab==='children') v.innerHTML=selectedChild?renderChild():renderChildren();
+  else if(tab==='garden') v.innerHTML=selectedGardenFolder?renderGardenFolder():gardenSection?renderGardenSection():renderGarden();
   else v.innerHTML=renderArchive();
 }
 
@@ -302,7 +344,8 @@ function render(){
 function cardRow(c,showDay){
   const dot=TYPE_DOT[c.type]||'#9A948A';
   const book=state.books.find(b=>b.id===c.bookId);
-  const sub=(showDay?('<small>'+(c.date?fmtShort(c.date):'Idea Basket')+'</small>'):'')+(c.type==='Reading'&&book?'<small>'+esc(book.title)+'</small>':'');
+  const folder=gardenFolderById(c.gardenId);
+  const sub=(showDay?('<small>'+(c.date?fmtShort(c.date):'Idea Basket')+'</small>'):'')+(c.type==='Reading'&&book?'<small>'+esc(book.title)+'</small>':'')+(c.type==='Mother culture'&&folder?'<small>Алисин сад · '+esc(folder.title)+'</small>':'');
   return '<button class="card" onclick="openCard(\''+c.id+'\')">'
     +'<span class="dot" style="background:'+dot+'"></span>'
     +'<span class="t">'+esc(c.title||'(untitled)')+sub+'</span>'
@@ -495,6 +538,7 @@ function readingFields(prefix,c){
 }
 function updateReadingFields(prefix){
   document.getElementById(prefix+'-reading').hidden=document.getElementById(prefix+'-type').value!=='Reading';
+  updateGardenCardFields(prefix);
 }
 function updateBookFields(prefix){
   const id=document.getElementById(prefix+'-book').value;
@@ -665,6 +709,206 @@ function closeSheet(){ document.getElementById('overlay').hidden=true; }
 document.getElementById('overlay').addEventListener('click',e=>{ if(e.target.id==='overlay') closeSheet(); });
 document.getElementById('overlay').addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
 
+/* ============ Alisa's garden ============ */
+const GARDEN_SECTIONS={
+  read:{title:'Почитать и посмотреть',hint:'Книги, фильмы, спектакли и мысли после',icon:'📖'},
+  make:{title:'Сотворить',hint:'Раскраски, рукоделие, песни и маленькие затеи',icon:'🧵'},
+  projects:{title:'Мои проекты',hint:'Итальянский, рассказы, Лирана — свои папочки',icon:'🌱'},
+  later:{title:'На потом',hint:'Прекрасные идеи, к которым хочется вернуться',icon:'✨'}
+};
+const GARDEN_STATUSES={idea:'Задумка',active:'В процессе',paused:'На паузе',done:'Завершено'};
+const GARDEN_MEDIA={book:'Книга',film:'Фильм',series:'Сериал',play:'Спектакль',other:'Другое'};
+function gardenFolderById(id){return (state.gardenFolders||[]).find(f=>f.id===id);}
+function gardenStatusLabel(f){
+  if(f.section==='later')return 'На потом';
+  if(f.section==='read'&&f.status==='active')return f.medium==='book'?'Читаю':'Смотрю';
+  if(f.section==='read'&&f.status==='done')return f.medium==='book'?'Прочитано':'Посмотрено';
+  return GARDEN_STATUSES[f.status]||GARDEN_STATUSES.idea;
+}
+function gardenHistory(id){
+  const notes=(state.gardenEntries||[]).filter(n=>n.folderId===id).map(n=>({kind:'entry',date:n.date,createdAt:n.createdAt||n.id,data:n}));
+  const cards=state.cards.filter(c=>c.type==='Mother culture'&&c.gardenId===id&&c.date&&['Done','Partial'].includes(c.status)).map(c=>({kind:'card',date:c.date,createdAt:c.createdAt||c.id,data:c}));
+  return notes.concat(cards).sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt));
+}
+function gardenMaterials(text){
+  return esc(text).replace(/https?:\/\/[^\s<>]+/g,url=>'<a href="'+url+'" target="_blank" rel="noopener noreferrer">'+url+'</a>');
+}
+function openGardenSection(section){gardenSection=section;selectedGardenFolder=null;tab='garden';closeSheet();render();window.scrollTo(0,0);}
+function openGardenFolder(id){const f=gardenFolderById(id);if(!f)return;gardenSection=f.section;selectedGardenFolder=id;tab='garden';closeSheet();render();window.scrollTo(0,0);}
+function renderGarden(){
+  let h='<div class="garden-heading"><div class="garden-flowers" aria-hidden="true">✿ · ✧ · ✿</div><div class="eyebrow">Время для себя</div><h1 class="date">Алисин сад</h1><p class="garden-welcome">Что хочется сделать сегодня?</p></div><div class="garden-doors">';
+  h+=Object.entries(GARDEN_SECTIONS).map(([id,s])=>'<button class="garden-door" onclick="openGardenSection(\''+id+'\')"><span class="garden-icon" aria-hidden="true">'+s.icon+'</span><span class="garden-door-title">'+s.title+'</span><span class="garden-door-hint">'+s.hint+'</span>'+(state.gardenFolders.some(f=>f.section===id)?'<span class="garden-count">Папочек: '+state.gardenFolders.filter(f=>f.section===id).length+'</span>':'')+'</button>').join('');
+  h+='</div><div class="btnrow garden-quick"><button class="btn" onclick="openGardenFolderEditor(null,\'later\')">+ Сохранить идею</button></div><div class="garden-footer" aria-hidden="true">✿</div>';
+  return h;
+}
+function gardenFolderRow(f){
+  const photos=(f.photos||[]).filter(p=>safeImage(p.src));
+  return '<button class="garden-folder" onclick="openGardenFolder(\''+f.id+'\')">'+(photos.length?'<img class="garden-cover" src="'+safeImage(photos[0].src)+'" alt="">':'<span class="garden-folder-icon" aria-hidden="true">'+GARDEN_SECTIONS[f.section].icon+'</span>')+'<span class="garden-folder-info"><span class="booktitle">'+esc(f.title)+'</span><span class="bookmeta" style="display:block">'+esc([f.section==='read'?GARDEN_MEDIA[f.medium]:'',gardenStatusLabel(f)].filter(Boolean).join(' · '))+'</span>'+(f.resume?'<span class="garden-resume">Продолжить: '+esc(f.resume)+'</span>':'')+'</span><span class="quiet" aria-hidden="true">›</span></button>';
+}
+function renderGardenSection(){
+  const section=GARDEN_SECTIONS[gardenSection];if(!section){gardenSection=null;return renderGarden();}
+  const folders=state.gardenFolders.filter(f=>f.section===gardenSection).slice().sort((a,b)=>(b.updatedAt||b.id).localeCompare(a.updatedAt||a.id));
+  let h='<button class="quietbtn" onclick="setTab(\'garden\')">‹ Алисин сад</button><div class="eyebrow">'+section.icon+' Моя полка</div><h1 class="date">'+section.title+'</h1><p class="garden-welcome">'+section.hint+'</p>';
+  h+=folders.length?folders.map(gardenFolderRow).join(''):'<div class="empty">'+({read:'Какая книга, фильм или спектакль ждут своего вечера?',make:'Что хочется сотворить? Сохраним задумку, материалы и фотографии.',projects:'У каждого проекта будет своя папочка с записями.',later:'Сюда можно бросить идею, ссылку или фоточку.'}[gardenSection])+'</div>';
+  h+='<div class="btnrow"><button class="btn primary" onclick="openGardenFolderEditor(null,\''+gardenSection+'\')">'+(gardenSection==='later'?'+ Сохранить идею':'+ Новая папочка')+'</button></div>';
+  return h;
+}
+function renderGardenFolder(){
+  const f=gardenFolderById(selectedGardenFolder);if(!f){selectedGardenFolder=null;return renderGardenSection();}
+  let h='<button class="quietbtn" onclick="openGardenSection(\''+f.section+'\')">‹ '+GARDEN_SECTIONS[f.section].title+'</button><div class="eyebrow">'+esc(gardenStatusLabel(f))+'</div><h1 class="date">'+esc(f.title)+'</h1>';
+  if(f.section==='read')h+='<div class="bookmeta">'+esc([GARDEN_MEDIA[f.medium],f.creator].filter(Boolean).join(' · '))+'</div>';
+  if(f.intent)h+='<h2 class="sect">'+(f.section==='read'?'О чём хочется помнить':'Что я хочу сделать')+'</h2><div class="notetext">'+esc(f.intent)+'</div>';
+  if(f.resume)h+='<div class="garden-bookmark"><div class="quiet">С чего продолжить</div><div class="notetext">'+esc(f.resume)+'</div></div>';
+  h+=gardenGallery(f.photos,'folder',f.id);
+  h+='<div class="btnrow"><button class="btn primary" onclick="openGardenEntry(null,\''+f.id+'\')">+ Запись и фото</button><button class="btn" onclick="openGardenFolderEditor(\''+f.id+'\')">О папочке</button>'+(f.section==='later'?'<button class="btn" onclick="openGardenFolderEditor(\''+f.id+'\',\'projects\')">Сделать проектом</button>':'<button class="btn" onclick="continueGarden(\''+f.id+'\')">+ В мой день</button>')+'</div>';
+  if(f.materials)h+='<h2 class="sect">Материалы и ссылки</h2><div class="notetext garden-materials">'+gardenMaterials(f.materials)+'</div>';
+  h+='<h2 class="sect">'+(f.section==='read'?'Мои чтения и впечатления':'Мои записи')+'</h2>';
+  const history=gardenHistory(f.id);
+  h+=history.length?history.map(item=>gardenHistoryRow(item)).join(''):'<div class="empty">Здесь будут заметки и фотографии. Выполненные карточки Mother culture из дня тоже появятся здесь.</div>';
+  const plans=state.cards.filter(c=>c.type==='Mother culture'&&c.gardenId===f.id&&c.status==='Planned');
+  if(plans.length)h+='<h2 class="sect">Запланировано</h2>'+plans.map(c=>cardRow(c,true)).join('');
+  return h;
+}
+function gardenHistoryRow(item){
+  const n=item.data,card=item.kind==='card';
+  let h='<article class="rec garden-entry"><div class="reading-top">'+(card?'<button class="quietbtn" style="padding-left:0" onclick="openDay(\''+n.date+'\')">'+fmtLong(n.date)+'</button>':'<span class="quiet">'+fmtLong(n.date)+'</span>')+'<span class="quiet">'+(card?(n.status==='Done'?'Сделано · Mother culture':'Немного · Mother culture'):'Заметка')+'</span></div>';
+  if(n.title)h+='<div class="booktitle" style="font-size:18px">'+esc(n.title)+'</div>';
+  const text=card?n.happened||n.details:n.text;
+  if(text)h+='<div class="notetext">'+esc(text)+'</div>';
+  if(n.materials)h+='<div class="notetext garden-materials"><span class="quiet">Материалы</span><br>'+gardenMaterials(n.materials)+'</div>';
+  h+=gardenGallery(card?n.gardenPhotos:n.photos,item.kind,n.id);
+  h+='<div class="btnrow" style="margin-bottom:0"><button class="btn small" onclick="'+(card?'openCard(\''+n.id+'\')':'openGardenEntry(\''+n.id+'\')')+'">'+(card?'Открыть карточку':'Изменить запись')+'</button></div></article>';
+  return h;
+}
+function gardenGallery(photos,kind,id){
+  if(!Array.isArray(photos)||!photos.length)return '';
+  return '<div class="garden-gallery">'+photos.map((p,i)=>safeImage(p.src)?'<button class="garden-photo" onclick="openGardenPhoto(\''+kind+'\',\''+id+'\','+i+')"><img src="'+safeImage(p.src)+'" alt="'+esc(p.caption||'Открыть фотографию')+'">'+(p.caption?'<span>'+esc(p.caption)+'</span>':'')+'</button>':'').join('')+'</div>';
+}
+function gardenSourcePhotos(kind,id){
+  const source=kind==='folder'?gardenFolderById(id):kind==='entry'?state.gardenEntries.find(n=>n.id===id):byId(id);
+  return source?(kind==='card'?source.gardenPhotos:source.photos)||[]:[];
+}
+function openGardenPhoto(kind,id,index){
+  const photos=gardenSourcePhotos(kind,id),p=photos[index];if(!p||!safeImage(p.src))return;
+  openSheet('<h3 class="sheettitle">Фото · '+(index+1)+' из '+photos.length+'</h3><img class="garden-large-photo" src="'+safeImage(p.src)+'" alt="'+esc(p.caption||'Фотография')+'">'+(p.caption?'<div class="notetext">'+esc(p.caption)+'</div>':'')+'<div class="btnrow">'+(index>0?'<button class="btn" onclick="openGardenPhoto(\''+kind+'\',\''+id+'\','+(index-1)+')">‹ Предыдущее</button>':'')+(index<photos.length-1?'<button class="btn" onclick="openGardenPhoto(\''+kind+'\',\''+id+'\','+(index+1)+')">Следующее ›</button>':'')+'<button class="btn" onclick="closeSheet()">Закрыть</button></div>');
+}
+function gardenPhotoFields(key,photos){
+  gardenPhotoDrafts[key]=(photos||[]).filter(p=>safeImage(p.src)).map(p=>({src:p.src,caption:p.caption||''}));
+  return '<div class="field"><label for="gp-'+key+'-file">Фотографии</label><input type="file" id="gp-'+key+'-file" accept="image/jpeg,image/png,image/webp" multiple onchange="loadGardenPhotos(this,\''+key+'\')"><div id="gp-'+key+'-rows">'+gardenPhotoEditorRows(key)+'</div></div>';
+}
+function gardenPhotoEditorRows(key){
+  return (gardenPhotoDrafts[key]||[]).map((p,i)=>'<div class="garden-photo-edit"><img class="garden-photo-thumb" src="'+safeImage(p.src)+'" alt="Прикреплённое фото"><div class="field"><label for="gp-'+key+'-caption-'+i+'">Подпись · необязательно</label><input type="text" id="gp-'+key+'-caption-'+i+'" value="'+esc(p.caption)+'"></div><button class="quietbtn danger" onclick="removeGardenPhoto(\''+key+'\','+i+')">Убрать фото</button></div>').join('');
+}
+function collectGardenPhotos(key){
+  (gardenPhotoDrafts[key]||[]).forEach((p,i)=>{const input=document.getElementById('gp-'+key+'-caption-'+i);if(input)p.caption=input.value;});
+  return gardenPhotoDrafts[key]||[];
+}
+async function loadGardenPhotos(input,key){
+  const files=Array.from(input.files||[]);if(!files.length)return;
+  collectGardenPhotos(key);
+  const draft=gardenPhotoDrafts[key],target=document.getElementById('gp-'+key+'-rows');
+  imageJobs++;input.disabled=true;
+  const loading=document.createElement('p');loading.className='quiet';loading.textContent='Готовлю фотографии…';target.appendChild(loading);
+  const failures=[];
+  try{
+    for(const file of files){
+      try{const src=await compressPhoto(file);if(!target.isConnected)return;draft.push({src,caption:''});}
+      catch(e){failures.push(file.name+': '+e.message);}
+    }
+    if(!target.isConnected)return;
+    collectGardenPhotos(key);target.innerHTML=gardenPhotoEditorRows(key);
+    if(failures.length)toast(failures.join(' '));
+  }finally{imageJobs--;input.disabled=false;input.value='';if(loading.isConnected)loading.remove();}
+}
+function removeGardenPhoto(key,index){
+  if(imageJobs){toast('Фото ещё готовится');return;}
+  collectGardenPhotos(key);gardenPhotoDrafts[key].splice(index,1);
+  document.getElementById('gp-'+key+'-rows').innerHTML=gardenPhotoEditorRows(key);
+}
+function openGardenFolderEditor(id,presetSection){
+  const f=id?gardenFolderById(id):null;if(id&&!f)return;
+  const section=presetSection||(f?f.section:gardenSection)||'later';
+  let h='<h3 class="sheettitle">'+(f?'Моя папочка':section==='later'?'Сохранить идею':'Новая папочка')+'</h3>';
+  h+='<div class="field"><label for="gf-title">Название</label><input type="text" id="gf-title" value="'+esc(f?f.title:'')+'" placeholder="Что хочется сохранить?"></div>';
+  h+='<div class="field"><label for="gf-section">Раздел сада</label><select id="gf-section" onchange="updateGardenFolderFields()">'+Object.entries(GARDEN_SECTIONS).map(([k,s])=>'<option value="'+k+'"'+(section===k?' selected':'')+'>'+s.title+'</option>').join('')+'</select></div>';
+  h+='<div id="gf-reading"'+(section==='read'?'':' hidden')+'><div class="field"><label for="gf-medium">Что это</label><select id="gf-medium">'+Object.entries(GARDEN_MEDIA).map(([k,v])=>'<option value="'+k+'"'+(f&&f.medium===k?' selected':'')+'>'+v+'</option>').join('')+'</select></div><div class="field"><label for="gf-creator">Автор или создатель · необязательно</label><input type="text" id="gf-creator" value="'+esc(f?f.creator:'')+'"></div></div>';
+  h+='<div id="gf-progress"'+(section==='later'?' hidden':'')+'><div class="field"><label for="gf-status">Как сейчас</label><select id="gf-status">'+Object.entries(GARDEN_STATUSES).map(([k,v])=>'<option value="'+k+'"'+((f?f.status:'idea')===k?' selected':'')+'>'+v+'</option>').join('')+'</select></div></div>';
+  h+='<div class="field"><label for="gf-intent">Задумка или заметка</label><textarea id="gf-intent" style="min-height:110px">'+esc(f?f.intent:'')+'</textarea></div>';
+  h+='<div class="field"><label for="gf-resume">С чего продолжить · необязательно</label><textarea id="gf-resume" placeholder="Следующий маленький шаг, глава, строчка песни…">'+esc(f?f.resume:'')+'</textarea></div>';
+  h+='<div class="field"><label for="gf-materials">Материалы и ссылки</label><textarea id="gf-materials">'+esc(f?f.materials:'')+'</textarea></div>';
+  h+=gardenPhotoFields('folder',f?f.photos:[]);
+  h+='<div class="btnrow"><button class="btn primary" onclick="saveGardenFolder(\''+(id||'')+'\')">Сохранить</button><button class="btn" onclick="closeSheet()">Отмена</button>'+(f?'<button class="quietbtn danger" onclick="deleteGardenFolder(\''+id+'\')">Удалить папочку</button>':'')+'</div>';
+  openSheet(h);
+}
+function updateGardenFolderFields(){
+  const section=document.getElementById('gf-section').value;
+  document.getElementById('gf-reading').hidden=section!=='read';document.getElementById('gf-progress').hidden=section==='later';
+}
+function saveGardenFolder(id){
+  if(imageJobs){toast('Фото ещё готовится');return;}
+  const g=x=>document.getElementById('gf-'+x).value;
+  const photos=collectGardenPhotos('folder');
+  const title=g('title').trim()||g('intent').trim().slice(0,60)||(photos.length?'Идея с фотографией':'');if(!title){toast('Добавьте название, пару слов или фото');return;}
+  const data={title,section:g('section'),status:g('status'),medium:g('medium'),creator:g('creator').trim(),intent:g('intent'),resume:g('resume'),materials:g('materials'),photos,updatedAt:new Date().toISOString()};
+  const f=id?gardenFolderById(id):null;
+  if(f)Object.assign(f,data);else {id=uid();state.gardenFolders.push(Object.assign({id,createdAt:data.updatedAt},data));}
+  persist();openGardenFolder(id);toast('В саду');
+}
+function deleteGardenFolder(id){
+  if(!confirm('Удалить папочку вместе с её заметками и фотографиями? Карточки дня останутся.'))return;
+  state.gardenFolders=state.gardenFolders.filter(f=>f.id!==id);state.gardenEntries=state.gardenEntries.filter(n=>n.folderId!==id);
+  state.cards.forEach(c=>{if(c.gardenId===id)c.gardenId=null;});
+  selectedGardenFolder=null;persist();closeSheet();render();
+}
+function openGardenEntry(id,folderId){
+  const n=id?state.gardenEntries.find(x=>x.id===id):null;if(id&&!n)return;
+  const f=gardenFolderById(n?n.folderId:folderId||selectedGardenFolder);if(!f)return;
+  let h='<h3 class="sheettitle">'+(n?'Моя запись':'Новая запись')+'</h3><div class="sub">'+esc(f.title)+'</div>';
+  h+='<div class="field"><label for="ge-date">Дата</label><input type="date" id="ge-date" value="'+esc(n?n.date:todayISO())+'"></div>';
+  h+='<div class="field"><label for="ge-text">Запись</label><textarea id="ge-text" style="min-height:140px" placeholder="Что получилось, о чём подумала, что хочется запомнить…">'+esc(n?n.text:'')+'</textarea></div>';
+  h+='<div class="field"><label for="ge-materials">Материалы и ссылки · необязательно</label><textarea id="ge-materials">'+esc(n?n.materials:'')+'</textarea></div>';
+  h+=gardenPhotoFields('entry',n?n.photos:[]);
+  h+='<div class="field"><label for="ge-resume">С чего продолжить · в папочке</label><textarea id="ge-resume">'+esc(f.resume)+'</textarea></div>';
+  h+='<div class="btnrow"><button class="btn primary" onclick="saveGardenEntry(\''+(id||'')+'\',\''+f.id+'\')">Сохранить</button><button class="btn" onclick="closeSheet()">Отмена</button>'+(n?'<button class="quietbtn danger" onclick="deleteGardenEntry(\''+id+'\')">Удалить запись</button>':'')+'</div>';
+  openSheet(h);
+}
+function saveGardenEntry(id,folderId){
+  if(imageJobs){toast('Фото ещё готовится');return;}
+  const g=x=>document.getElementById('ge-'+x).value;
+  const text=g('text').trim(),materials=g('materials'),photos=collectGardenPhotos('entry'),date=g('date');
+  if(!date){toast('Выберите дату');return;}
+  if(!text&&!materials.trim()&&!photos.length){toast('Добавьте запись, ссылку или фото');return;}
+  const n=id?state.gardenEntries.find(x=>x.id===id):null;
+  const data={folderId,date,text,materials,photos};
+  if(n)Object.assign(n,data);else state.gardenEntries.push(Object.assign({id:uid(),createdAt:new Date().toISOString()},data));
+  const f=gardenFolderById(folderId);if(f){f.resume=g('resume');f.updatedAt=new Date().toISOString();}
+  persist();openGardenFolder(folderId);toast('Запись сохранена');
+}
+function deleteGardenEntry(id){
+  if(!confirm('Удалить эту запись и её фотографии?'))return;
+  state.gardenEntries=state.gardenEntries.filter(n=>n.id!==id);persist();closeSheet();render();
+}
+function continueGarden(id){const f=gardenFolderById(id);if(f)openCardEditor(null,todayISO(),{title:f.title,type:'Mother culture',gardenId:id,details:f.resume||f.intent||'',materials:f.materials||''});}
+function gardenCardFields(prefix,c){
+  const mother=c.type==='Mother culture';
+  return '<div id="'+prefix+'-garden"'+(mother||(c.gardenPhotos||[]).length?'':' hidden')+'><div id="'+prefix+'-garden-link"'+(mother?'':' hidden')+'><div class="field"><label for="'+prefix+'-garden-folder">Папочка в Алисином саду</label><select id="'+prefix+'-garden-folder"><option value="">Без папочки</option>'+state.gardenFolders.map(f=>'<option value="'+f.id+'"'+(c.gardenId===f.id?' selected':'')+'>'+esc(f.title)+' · '+GARDEN_SECTIONS[f.section].title+'</option>').join('')+'</select></div><div class="quiet">Выполненная карточка появится в папочке и останется в своём дне.</div></div>'+gardenPhotoFields('card',c.gardenPhotos||[])+'</div>';
+}
+function updateGardenCardFields(prefix){
+  const container=document.getElementById(prefix+'-garden');if(!container)return;
+  const mother=document.getElementById(prefix+'-type').value==='Mother culture';
+  container.hidden=!mother&&!(gardenPhotoDrafts.card||[]).length;
+  document.getElementById(prefix+'-garden-link').hidden=!mother;
+}
+function readGardenCardFields(prefix){
+  const type=document.getElementById(prefix+'-type').value;
+  const input=document.getElementById(prefix+'-garden-folder');
+  return {gardenId:type==='Mother culture'&&input?input.value||null:null,gardenPhotos:collectGardenPhotos('card')};
+}
+function keepGardenCard(c){
+  if(!c||!gardenFolderById(c.gardenId))return;
+  state.gardenEntries.push({id:uid(),folderId:c.gardenId,date:c.date||todayISO(),createdAt:c.createdAt||new Date().toISOString(),title:c.title,text:c.happened||c.details||'',materials:c.materials||'',photos:c.gardenPhotos||[],sourceCardId:c.id});
+}
+
 /* ============ card editor ============ */
 function openCard(id){ openCardEditor(id,null); }
 function openCardEditor(id,presetDate,prefill){
@@ -677,6 +921,7 @@ function openCardEditor(id,presetDate,prefill){
   h+='<div class="field"><label>Title</label><input type="text" id="f-title" value="'+esc(c?c.title:(p?p.title:''))+'" placeholder="e.g. Read-aloud, clay dishes, watermelon sorbet…"></div>';
   h+='<div class="field"><label>Type</label><select id="f-type" onchange="updateReadingFields(\'f\')">'+TYPES.map(t=>'<option'+((c?c.type:(p?p.type:'Other'))===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
   h+=readingFields('f',c||p||{});
+  h+=gardenCardFields('f',c||p||{});
   h+='<div class="field"><label>Status</label><div class="statusrow">'+STATUSES.map(s=>'<button class="chip '+s+(editorStatus===s?' sel':'')+'" data-st="'+s+'" onclick="pickStatus(this)">'+s+'</button>').join('')+'</div></div>';
   h+='<div class="field"><label>Day</label><input type="date" id="f-date" value="'+esc(date)+'">'
     +'<div class="btnrow" style="margin:8px 0 0"><button class="btn small" onclick="setDateField(1)">Tomorrow</button><button class="btn small" onclick="setDateField(0)">Today</button><button class="btn small" onclick="setDateField(null)">Idea Basket</button></div>'
@@ -705,7 +950,8 @@ function saveCard(id){
   collectEditorEntries();
   if(editorEntries.some(n=>n.cardId&&!(n.text||'').trim()&&!n.image)){toast('В записи тетради нужен текст или фото. Можно оставить её только в тетради.');return;}
   const reading=readBookFields('f');if(!reading)return;
-  const data=Object.assign({title, type:g('f-type'), status:editorStatus, date:g('f-date')||null, details:g('f-details'), materials:g('f-materials'), happened:g('f-happened'), childNotes:g('f-childnotes')},reading);
+  const garden=readGardenCardFields('f');if(!garden)return;
+  const data=Object.assign({title, type:g('f-type'), status:editorStatus, date:g('f-date')||null, details:g('f-details'), materials:g('f-materials'), happened:g('f-happened'), childNotes:g('f-childnotes')},reading,garden);
   let c;
   if(id){ c=byId(id); reopenCard(c); Object.assign(c,data); }
   else { c=Object.assign({id:uid(),createdAt:new Date().toISOString(),archived:false},data);state.cards.push(c); }
@@ -713,7 +959,8 @@ function saveCard(id){
   persist(); closeSheet(); render();
 }
 function delCard(id){
-  if(!confirm('Delete this card? Записи в детских тетрадях сохранятся.'))return;
+  if(!confirm('Delete this card? Записи в детских тетрадях и связанной папочке сада сохранятся.'))return;
+  keepGardenCard(byId(id));
   state.childEntries.forEach(n=>{if(n.cardId===id)n.cardId=null;});
   state.cards=state.cards.filter(c=>c.id!==id);persist();closeSheet();render();
 }
@@ -725,16 +972,19 @@ function openHappened(){
   h+='<div class="field"><label>Title (optional)</label><input type="text" id="h-title" placeholder="Short name for the review"></div>';
   h+='<div class="field"><label>Type</label><select id="h-type" onchange="updateReadingFields(\'h\')">'+TYPES.map(t=>'<option'+(t==='Child note'?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
   h+=readingFields('h',{});
+  h+=gardenCardFields('h',{});
   h+='<div class="btnrow"><button class="btn primary" onclick="saveHappened()">Save</button><button class="btn" onclick="closeSheet()">Cancel</button></div>';
   openSheet(h);
 }
 function saveHappened(){
+  if(imageJobs){toast('Фото ещё готовится');return;}
   const note=document.getElementById('h-note').value.trim();
   let title=document.getElementById('h-title').value.trim();
   if(!note && !title){ toast('Write a word or two first'); return; }
   if(!title) title=note.length>42? note.slice(0,42)+'…' : note;
   const reading=readBookFields('h');if(!reading)return;
-  state.cards.push(Object.assign({id:uid(),createdAt:new Date().toISOString(),title,type:document.getElementById('h-type').value,status:'Done',date:selectedDay,details:'',materials:'',happened:note,childNotes:'',archived:false},reading));
+  const garden=readGardenCardFields('h');if(!garden)return;
+  state.cards.push(Object.assign({id:uid(),createdAt:new Date().toISOString(),title,type:document.getElementById('h-type').value,status:'Done',date:selectedDay,details:'',materials:'',happened:note,childNotes:'',archived:false},reading,garden));
   persist(); closeSheet(); render(); toast('Kept ✓');
 }
 
@@ -910,7 +1160,7 @@ function snapToday(){
     const childBits=state.childEntries.filter(n=>n.cardId===c.id).map(n=>{
       const child=childById(n.childId);return (child?child.name+': ':'')+n.kind+(n.text?' — '+n.text:'')+(n.image?' [фото работы]':'');
     });
-    return {id:c.id,title:c.title,type:c.type,status,movedTo,details:c.details||'',materials:c.materials||'',happened:c.happened||'',childNotes:[c.childNotes||'',...childBits].filter(Boolean).join('\n'),bookId:c.bookId||null,readingPosition:c.readingPosition||''};
+    return {id:c.id,title:c.title,type:c.type,status,movedTo,details:c.details||'',materials:c.materials||'',happened:c.happened||'',childNotes:[c.childNotes||'',...childBits].filter(Boolean).join('\n'),bookId:c.bookId||null,readingPosition:c.readingPosition||'',gardenId:c.gardenId||null};
   });
 }
 function buildReview(snaps){
@@ -997,7 +1247,7 @@ function doImport(){
   try{ obj=JSON.parse(raw); }catch(e){ toast('That doesn\'t look like a Hearth backup'); return; }
   if(!obj||!Array.isArray(obj.cards)){ toast('That doesn\'t look like a Hearth backup'); return; }
   if(!confirm('Replace everything in the app with this backup?')) return;
-  state=normalizeState(obj);selectedBook=null;selectedChild=null;persist();closeSheet();render();toast('Restored ✓');
+  state=normalizeState(obj);selectedBook=null;selectedChild=null;selectedGardenFolder=null;gardenSection=null;persist();closeSheet();render();toast('Restored ✓');
 }
 
 /* ============ boot ============ */
