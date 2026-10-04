@@ -224,3 +224,82 @@ test('storage quota failures are visible and leave exportable data in memory', a
   assert.equal(run("document.getElementById('storageWarning').hidden"), false);
   assert.equal(run("state.books[0].title"), 'Keep in backup');
 });
+
+test('existing diaries gain an empty garden while preserving all family data', () => {
+  const run=app();
+  run("const old={cards:[{id:'c'}],records:[{id:'r'}],books:[{id:'b',status:'reading'}],children:[{id:'child'}],childEntries:[{id:'n'}]};state=normalizeState(old)");
+  assert.equal(run('state.gardenFolders.length'),0);
+  assert.equal(run('state.gardenEntries.length'),0);
+  assert.equal(run("state.children[0].id"),'child');
+  assert.equal(run("state.books[0].id"),'b');
+  assert.equal(run("state.childEntries[0].id"),'n');
+});
+
+test('garden history joins completed daily cards and notes by date without copying cards', () => {
+  const run=app();
+  run("state.gardenFolders.push({id:'f',section:'projects',title:'Italian',status:'active',photos:[]});['Done','Partial','Planned','Skipped'].forEach((status,i)=>{addCard('m'+i,'2026-03-0'+(i+1),status);Object.assign(state.cards[i],{type:'Mother culture',gardenId:'f',archived:true});});state.gardenEntries.push({id:'n',folderId:'f',date:'2026-03-05',text:'Thought',photos:[]});");
+  assert.equal(run("gardenHistory('f').length"),3);
+  assert.equal(run("gardenHistory('f')[0].data.id"),'n');
+  assert.equal(run("gardenHistory('f')[2].data.id"),'m0');
+  run("selectedGardenFolder='f';renderGardenFolder();renderGardenFolder()");
+  assert.equal(run('state.cards.length'),4);
+  assert.equal(run('state.gardenEntries.length'),1);
+});
+
+test('day reviews preserve the garden connection and completed activities remain in their folder', () => {
+  const run=app();
+  run("addCard('m',todayISO());Object.assign(byId('m'),{type:'Mother culture',gardenId:'f'});startReview();rwSave()");
+  assert.equal(run('state.records[0].cards[0].gardenId'),'f');
+  assert.equal(run("gardenHistory('f').length"),1);
+  assert.equal(run("byId('m').archived"),true);
+});
+
+test('turning an idea into a project retains its identity, history, materials and photos', () => {
+  const run=app();
+  run("state.gardenFolders.push({id:'f',title:'Song',section:'later',status:'idea',photos:[{src:'data:image/jpeg;base64,YWJj',caption:'Pattern'}],materials:'Words'});state.gardenEntries.push({id:'n',folderId:'f',date:todayISO(),text:'Keep me',photos:[]});gardenPhotoDrafts.folder=state.gardenFolders[0].photos.map(p=>Object.assign({},p));['title','section','status','medium','creator','intent','resume','materials'].forEach(k=>document.getElementById('gf-'+k).value=({title:'Song',section:'projects',status:'active',medium:'book',materials:'Words'})[k]||'');document.getElementById('gp-folder-caption-0').value='Pattern';saveGardenFolder('f')");
+  assert.equal(run('state.gardenFolders.length'),1);
+  assert.equal(run('state.gardenFolders[0].id'),'f');
+  assert.equal(run('state.gardenFolders[0].section'),'projects');
+  assert.equal(run('state.gardenFolders[0].photos[0].caption'),'Pattern');
+  assert.equal(run('state.gardenFolders[0].materials'),'Words');
+  assert.equal(run("gardenHistory('f')[0].data.text"),'Keep me');
+});
+
+test('deleting a linked daily card retains its writing and photos as a garden note', () => {
+  const run=app();
+  run("confirm=()=>true;state.gardenFolders.push({id:'f',section:'projects'});addCard('m',todayISO());Object.assign(byId('m'),{type:'Mother culture',gardenId:'f',gardenPhotos:[{src:'data:image/jpeg;base64,YWJj',caption:'My work'}]});delCard('m')");
+  assert.equal(run('state.cards.length'),0);
+  assert.equal(run('state.gardenEntries.length'),1);
+  assert.equal(run('state.gardenEntries[0].text'),'What happened m');
+  assert.equal(run('state.gardenEntries[0].photos[0].caption'),'My work');
+  assert.equal(run("gardenHistory('f').length"),1);
+});
+
+test('deleting a garden folder preserves its daily cards and child notes', () => {
+  const run=app();
+  run("confirm=()=>true;state.gardenFolders.push({id:'f',section:'projects'});state.gardenEntries.push({id:'n',folderId:'f'});addCard('m',todayISO());Object.assign(byId('m'),{gardenId:'f',gardenPhotos:[{src:'data:image/jpeg;base64,YWJj'}]});state.childEntries.push({id:'child-note',cardId:'m'});deleteGardenFolder('f')");
+  assert.equal(run('state.gardenFolders.length'),0);
+  assert.equal(run('state.gardenEntries.length'),0);
+  assert.equal(run('state.cards.length'),1);
+  assert.equal(run('state.cards[0].gardenId'),null);
+  assert.equal(run('state.cards[0].gardenPhotos.length'),1);
+  assert.equal(run('state.childEntries.length'),1);
+});
+
+test('backup round trips every garden photo, caption and connection', () => {
+  const run=app();
+  run("state.gardenFolders.push({id:'f',section:'make',status:'paused',photos:[{src:'data:image/jpeg;base64,YWJj',caption:'Inspiration'}]});state.gardenEntries.push({id:'n',folderId:'f',date:todayISO(),photos:[{src:'data:image/jpeg;base64,YWJj',caption:'Progress'}]});addCard('m',todayISO());Object.assign(byId('m'),{gardenId:'f',gardenPhotos:[{src:'data:image/jpeg;base64,YWJj',caption:'Today'}]});const copy=normalizeState(JSON.parse(JSON.stringify(state)))");
+  assert.equal(run('copy.gardenFolders[0].photos[0].caption'),'Inspiration');
+  assert.equal(run('copy.gardenEntries[0].photos[0].caption'),'Progress');
+  assert.equal(run('copy.cards[0].gardenPhotos[0].caption'),'Today');
+  assert.equal(run('copy.cards[0].gardenId'),'f');
+});
+
+test('garden notes and links cannot inject markup or executable URLs', () => {
+  const run=app();
+  assert.equal(run("gardenGallery([{src:'javascript:alert(1)',caption:'Bad'}],'folder','f')"),'<div class="garden-gallery"></div>');
+  assert.doesNotMatch(run("gardenMaterials('<img src=x onerror=alert(1)> javascript:alert(1)')"),/<img|href="javascript:/);
+  assert.match(run("gardenMaterials('https://example.org/notes')"),/rel="noopener noreferrer"/);
+  run("state.gardenFolders.push({id:'f',section:'later',title:'<script>bad</script>',photos:[]})");
+  assert.doesNotMatch(run("renderGardenSection.call(null);gardenFolderRow(state.gardenFolders[0])"),/<script>/);
+});
